@@ -61,6 +61,13 @@ Estas regras são **inegociáveis** e se aplicam a qualquer tarefa, em qualquer 
 - Documentação desatualizada conta como trabalho incompleto.
 - Atualize READMEs, comentários relevantes e os documentos referenciados na Seção 3.
 
+### 2.10. Erros esperados como valores
+- Modele **erros esperados e recuperáveis** como valores de retorno, não como exceptions.
+- Use exceptions apenas para falhas realmente inesperadas, bugs, invariantes violadas ou problemas críticos de infraestrutura.
+- Não use exceptions como fluxo normal de negócio. Casos como validação inválida, entidade não encontrada, permissão negada, conflito de estado ou operação recusada devem ser retornados explicitamente.
+- Prefira retornos tipados e explícitos, como `Result<T, E>`, unions discriminadas ou estruturas equivalentes da linguagem usada.
+- Quem chama a função deve conseguir entender, pelo contrato, quais erros esperados podem acontecer e tratá-los sem depender de `try/catch` genérico.
+
 ---
 
 ## 3. Referências de Documentação
