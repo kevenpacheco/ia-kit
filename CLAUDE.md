@@ -18,7 +18,7 @@ Estas regras são **inegociáveis** e se aplicam a qualquer tarefa, em qualquer 
 
 ### 2.1. Pense antes de codar
 - **Declare suas presunções explicitamente** antes de escrever qualquer código.
-- Se houver **incerteza**, **pergunte**. Nunca adivinhe.
+- Se houver **incerteza**, **ambiguidade**, **conflitos**, **pergunte**. Nunca adivinhe.
 - Não inicie a implementação enquanto o objetivo e o escopo não estiverem claros.
 
 ### 2.2. Simplicidade primeiro
