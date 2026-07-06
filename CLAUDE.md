@@ -31,37 +31,41 @@ Estas regras são **inegociáveis** e se aplicam a qualquer tarefa, em qualquer 
 - Não refatore, renomeie ou reformate código fora do escopo da tarefa sem permissão.
 - Mantenha os diffs pequenos e revisáveis.
 
-### 2.4. Execução baseada em objetivos
+### 2.4. Use o máximo de subagentes possível
+- Sempre que a tarefa permitir paralelização, use o **máximo de subagentes possível** para executá-la.
+- Prefira decompor o trabalho em partes independentes e distribuí-las entre subagentes em vez de executar tudo sequencialmente em um único fluxo.
+
+### 2.5. Execução baseada em objetivos
 - Toda ação deve servir a um **objetivo declarado**.
 - Antes de codar, deixe claro: *o que* será feito, *por que*, e *como* o sucesso será verificado.
 - Se a tarefa se desviar do objetivo, pare e realinhe.
 
-### 2.5. Testes verificam intenção e comportamento
+### 2.6. Testes verificam intenção e comportamento
 - Escreva testes que validem **intenções e comportamentos**, não detalhes de implementação.
 - Um teste deve falhar por uma razão clara e ligada ao comportamento esperado.
 
-### 2.6. TDD é obrigatório
+### 2.7. TDD é obrigatório
 - **TDD é obrigatório em qualquer operação**: escreva o teste antes da implementação.
 - Ciclo: **Red → Green → Refactor**.
   1. Escreva um teste que falha (Red).
   2. Implemente o mínimo para passar (Green).
   3. Refatore mantendo os testes verdes (Refactor).
 
-### 2.7. Nunca delete testes sem permissão
+### 2.8. Nunca delete testes sem permissão
 - **Não remova nem desabilite** testes existentes sem autorização explícita.
 - Se um teste parece incorreto ou obsoleto, **sinalize e pergunte** antes de alterá-lo.
 
-### 2.8. Código autoexplicativo
+### 2.9. Código autoexplicativo
 - **Não faça comentários desnecessários.** Comente apenas o que for realmente necessário (o *porquê*, não o *o quê*).
 - Nomes de **variáveis, funções, classes e métodos** devem ser descritivos e expressar com clareza o que fazem.
 - Prefira um nome claro a um comentário que explique um nome ruim.
 
-### 2.9. Documentação sempre atualizada
+### 2.10. Documentação sempre atualizada
 - Em **qualquer alteração**, mantenha a documentação técnica e/ou de usabilidade atualizada.
 - Documentação desatualizada conta como trabalho incompleto.
 - Atualize READMEs, comentários relevantes e os documentos referenciados na Seção 3.
 
-### 2.10. Erros esperados como valores
+### 2.11. Erros esperados como valores
 - Modele **erros esperados e recuperáveis** como valores de retorno, não como exceptions.
 - Use exceptions apenas para falhas realmente inesperadas, bugs, invariantes violadas ou problemas críticos de infraestrutura.
 - Não use exceptions como fluxo normal de negócio. Casos como validação inválida, entidade não encontrada, permissão negada, conflito de estado ou operação recusada devem ser retornados explicitamente.
