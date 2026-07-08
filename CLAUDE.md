@@ -5,10 +5,6 @@
 - **Projeto:** `<nome do projeto>`
 - **Descrição:** `<descrição curta: o que é e qual problema resolve>`
 - **Stack principal:** `<linguagens, frameworks, banco de dados>`
-- **Como rodar localmente:** `<comandos de setup e execução>`
-- **Como rodar os testes:** `<comando de testes>`
-- **Como fazer build / deploy:** `<comandos / pipeline>`
-- **Convenções específicas:** `<padrões de código, commits, branches>`
 
 ---
 
