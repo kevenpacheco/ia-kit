@@ -23,7 +23,7 @@ Se voce ja sabe o que deu errado, pule direto para `/k-spec`.
 |---|---|
 | Sintoma conhecido | `k-spec` |
 | Comportamento correto, mas codigo ruim | `k-spec` tipo `refactor` |
-| Revisar um PR inteiro por padrao de codigo | `review-pr-php7-mysql` |
+| Revisar um PR inteiro por padrao de codigo | skill de code review do projeto, se existir |
 
 O criterio e: existe divergencia entre comportamento esperado e observado? Entao e bug. Codigo feio que funciona nao e bug.
 
@@ -57,9 +57,9 @@ Quatro subagentes **somente de leitura**, todos na mesma mensagem. Cada um receb
 
 | Eixo | O que procurar |
 |---|---|
-| Nulos, arrays e tipos | retorno `null` nao tratado, indice de array inexistente, `==` onde precisa `===`, coercao de tipo do PHP 7, `count()` em possivel `null` |
-| SQL e dados | input concatenado em query, filtro/join errado, `LIMIT`/`OFFSET` off-by-one, N+1, ausencia de indice em coluna filtrada, escrita multipla sem transacao |
-| Fluxo e estado | `if`/`else` invertido, early return faltando, efeito colateral em metodo compartilhado, dependencia implicita de ordem de chamada, estado de sessao vazando entre portais |
+| Nulos, colecoes e tipos | retorno vazio/nulo nao tratado, acesso a indice/chave inexistente, comparacao de tipo frouxa onde precisa de igualdade estrita, coercao de tipo implicita, chamada de tamanho/contagem em valor possivelmente nulo |
+| Dados e persistencia | input concatenado em consulta (SQL ou equivalente), filtro/join errado, paginacao off-by-one, N+1, ausencia de indice em coluna filtrada, escrita multipla sem transacao |
+| Fluxo e estado | `if`/`else` invertido, early return faltando, efeito colateral em metodo compartilhado, dependencia implicita de ordem de chamada, estado vazando entre contextos/usuarios |
 | Autorizacao e limites | action sem checagem de dono/perfil, ID vindo do request usado sem validar posse, upload sem validar tipo/tamanho, valor monetario ou data sem validacao de borda |
 
 Cada subagente devolve, por achado: `arquivo:linha`, condicao de entrada que dispara o problema, e comportamento errado resultante. **Nunca despejo de codigo, nunca sugestao de correcao.**
@@ -98,7 +98,7 @@ O `k-spec` refaz a confirmacao da divergencia e tenta reproduzir; o achado do sc
 ```
 Confirmados: <n>. Escolhidos: <n>.
 Specs criadas:
-- documentation/specs/<ts>-<slug>/ — <titulo>
+- <raiz-de-specs>/<ts>-<slug>/ — <titulo>
 Proximo passo: /k-plan
 ```
 
