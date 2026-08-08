@@ -19,7 +19,7 @@ Sem argumento, a skill pergunta o que voce quer fazer.
 3. Le a documentacao e o codigo do fluxo antes de perguntar qualquer coisa.
 4. Entrevista voce **uma pergunta por vez**, sempre com recomendacao e trade-off escrito.
 5. Em tipo `bug`, prova que o bug existe e tenta reproduzir.
-6. Escreve `documentation/specs/<AAAAMMDD-HHMMSS>-<slug>/spec.md`.
+6. Escreve `spec.md` na pasta de specs do fluxo (`docs/specs/<AAAAMMDD-HHMMSS>-<slug>/` ou `documentation/specs/...`, conforme detectado).
 
 ## O que ela nao faz
 
@@ -41,7 +41,7 @@ Para procurar bugs em um diretorio, modulo ou no diff da branch, comece por `/k-
 ## Saida
 
 ```
-Spec criada: documentation/specs/20260807-143205-corrigir-crop-banner/spec.md
+Spec criada: docs/specs/20260807-143205-corrigir-crop-banner/spec.md
 Tipo: bug
 Proximo passo: /k-plan
 ```
