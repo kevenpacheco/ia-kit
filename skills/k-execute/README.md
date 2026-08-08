@@ -21,8 +21,8 @@ Sem argumento, resolve pela branch atual.
 2. Pega a primeira tarefa `pendente` (ou retoma a `em-andamento`), marca `em-andamento`.
 3. Le `spec.md`, `plan.md` e o arquivo da tarefa. Invoca a skill tatica do campo `skill`.
 4. Altera **apenas** os arquivos listados em `arquivos`.
-5. Gate: `php -l` + a testsuite afetada, no container. 2 tentativas.
-6. Commita via skill `commit` (sem push).
+5. Gate: lint + a suite de teste afetada, com os comandos do projeto. 2 tentativas.
+6. Commita via skill `k-commit` (sem push).
 7. Marca `status: concluida` e preenche `commit: <SHA>`.
 
 ## Quando falha
@@ -35,15 +35,15 @@ Bug descoberto no caminho vai para `## Achados fora do escopo` no `spec.md` atua
 
 ## Encerramento (ultima tarefa)
 
-1. Suite completa no container. Vermelha = para, sem push.
+1. Suite completa, com o comando do projeto. Vermelha = para, sem push.
 2. Push unico da branch.
-3. Pergunta o alvo do PR (padrao `dev`) e espera.
+3. Pergunta o alvo do PR (sem default fixo) e espera.
 4. Abre o PR com corpo montado do `spec.md` + `plan.md`. Em branch `fix/`, o corpo traz causa raiz, correcao escolhida e opcoes descartadas.
 
 ## Nunca
 
 - merge
-- push em `main`, `homolog` ou `dev`
+- push nas branches protegidas do projeto (ex.: `main`)
 - `git add .`, `git add -A`, `--no-verify`
 - pular o gate de teste
 - executar tarefa que nao existe como arquivo em `tasks/`
