@@ -14,7 +14,7 @@ Depois que `/k-spec` gravou o `spec.md`. Invocacao:
 ```
 /k-plan                        # infere a spec mais recente sem plan.md
 /k-plan corrigir-crop-banner   # por slug
-/k-plan documentation/specs/20260807-143205-corrigir-crop-banner
+/k-plan docs/specs/20260807-143205-corrigir-crop-banner   # ou documentation/specs/..., conforme a raiz detectada pelo k-spec
 ```
 
 Se houver mais de uma candidata, **liste e pergunte**. Nunca chute a spec.
@@ -53,7 +53,7 @@ Eixos por tipo:
 
 Cada subagente devolve **conclusao com `arquivo:linha`**, nunca despejo de codigo.
 
-Pesquisa externa (web) so quando o codigo nao responde: contrato de integracao de terceiro (Pagar.me, Cogna) ou comportamento de biblioteca ja usada. Nunca busque "melhor pratica" generica — a resposta costuma violar as restricoes do projeto (PHP 8+, ORM, framework novo).
+Pesquisa externa (web) so quando o codigo nao responde: contrato de integracao de terceiro especifica do projeto, ou comportamento de biblioteca ja usada. Nunca busque "melhor pratica" generica — a resposta costuma violar restricoes de stack/versao documentadas no `CLAUDE.md` do projeto.
 
 ### 3. Grade de suspeitas (so tipo `bug`)
 
@@ -76,7 +76,7 @@ Se voce nao consegue provar, **nao adivinhe**: volte a investigar ou devolva ao 
 
 ### 5. Classificar a mudanca
 
-Decida e justifique, conforme `.claude/rules/project-rules.md`:
+Decida e justifique. Se o projeto documentar convencao propria de arquitetura (`CLAUDE.md` ou docs equivalentes), ela prevalece; na ausencia, use o criterio abaixo como padrao:
 
 - **legado puro** — priorizar compatibilidade, padrao existente e diff minimo. Nao criar camada nova.
 - **contexto em evolucao** — regra pode ir para Service/objeto de negocio, com camada de isolamento em relacao ao legado.
@@ -105,7 +105,7 @@ Formato: `AskUserQuestion`, 2 a 4 alternativas, recomendada em primeiro com `(Re
 
 ### 8. Escrever o plan.md
 
-Grave em `documentation/specs/<ts>-<slug>/plan.md`:
+Grave na mesma raiz de specs onde esta o `spec.md` (`docs/specs/<ts>-<slug>/plan.md` ou `documentation/specs/<ts>-<slug>/plan.md`, conforme detectado):
 
 ```markdown
 ---
@@ -203,7 +203,7 @@ A branch nasce aqui, sempre a partir da `main` atualizada. Prefixo pelo `tipo` d
 git checkout main
 git pull origin main
 git checkout -b <prefixo>/<slug>
-git add documentation/specs/<ts>-<slug>/spec.md documentation/specs/<ts>-<slug>/plan.md
+git add <raiz-de-specs>/<ts>-<slug>/spec.md <raiz-de-specs>/<ts>-<slug>/plan.md
 git commit -m "docs(spec): <titulo>"
 ```
 
@@ -216,7 +216,7 @@ Sem push. O push acontece uma unica vez, no encerramento do `k-execute`.
 ### 10. Encerrar
 
 ```
-Plano criado: documentation/specs/<ts>-<slug>/plan.md
+Plano criado: <raiz-de-specs>/<ts>-<slug>/plan.md
 Branch <prefixo>/<slug> criada. Commit: docs(spec): <titulo>
 Proximo passo: /k-task
 ```
@@ -225,8 +225,8 @@ Proximo passo: /k-task
 
 - Nao altere codigo de aplicacao nesta etapa. O plano descreve; o `k-execute` implementa.
 - Nao quebre em tarefas aqui. Isso e `k-task`.
-- Nunca faca push nem merge em `main`, `homolog` ou `dev`.
-- Nao proponha PHP 8+, ORM, container de DI, framework ou biblioteca nova sem dor concreta e pedido explicito.
+- Nunca faca push nem merge nas branches protegidas do projeto (ex.: `main`).
+- Nao proponha versao de linguagem, framework ou biblioteca alem do que o projeto ja usa, sem dor concreta e pedido explicito — respeite as convencoes documentadas em `CLAUDE.md`.
 - Nao invente camada nova em CRUD simples, consulta administrativa ou bugfix pequeno em area legada.
 - Nao misture bugfix com refatoracao. Melhoria que apareceu no caminho vai para `## Nao entra neste trabalho`.
 - Bug vizinho descoberto na investigacao vira spec nova via `/k-spec`, nunca item deste plano.
