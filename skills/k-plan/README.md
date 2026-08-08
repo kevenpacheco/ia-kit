@@ -7,7 +7,7 @@ Etapa 2 de 4: `k-spec` → **k-plan** → `k-task` → `k-execute`.
 ```
 /k-plan
 /k-plan corrigir-crop-banner
-/k-plan documentation/specs/20260807-143205-corrigir-crop-banner
+/k-plan docs/specs/20260807-143205-corrigir-crop-banner   # ou documentation/specs/..., conforme a raiz detectada
 ```
 
 Sem argumento, pega a spec mais recente que ainda nao tem `plan.md`. Se houver ambiguidade, lista as candidatas e pergunta.
@@ -17,7 +17,7 @@ Sem argumento, pega a spec mais recente que ainda nao tem `plan.md`. Se houver a
 1. Le o `spec.md` e usa o `tipo` para decidir o que investigar.
 2. Dispara subagentes de leitura **em paralelo** (fluxo atual, reuso, consumidores, historico, cobertura).
 3. Em tipo `bug`, roda a grade de suspeitas e **prova a causa raiz** com `arquivo:linha`.
-4. Classifica: **legado puro** ou **contexto em evolucao** (`.claude/rules/project-rules.md`).
+4. Classifica: **legado puro** ou **contexto em evolucao** (conforme convencao do projeto, se documentada, senao o criterio padrao da skill).
 5. Monta 2-3 opcoes reais com trade-off e **espera voce escolher**.
 6. Escreve `plan.md` ao lado do `spec.md`.
 7. Cria a branch `<prefixo>/<slug>` a partir da `main` atualizada e commita `spec.md` + `plan.md`.
@@ -49,7 +49,7 @@ O slug da branch e o mesmo do diretorio da spec, sem o timestamp. E por ele que 
 ## Saida
 
 ```
-Plano criado: documentation/specs/20260807-143205-corrigir-crop-banner/plan.md
+Plano criado: docs/specs/20260807-143205-corrigir-crop-banner/plan.md
 Branch fix/corrigir-crop-banner criada. Commit: docs(spec): corrigir crop de banner
 Proximo passo: /k-task
 ```
