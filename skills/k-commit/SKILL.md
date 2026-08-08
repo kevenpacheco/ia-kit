@@ -18,27 +18,27 @@ Padronizar mensagens de commit seguindo Conventional Commits, em portugues brasi
 6. Nunca fazer `git add .` ou `git add -A` — adicionar apenas os arquivos relevantes pelo nome
 7. Sempre verificar `git status` e `git diff` antes de commitar
 8. Sempre verificar `git log --oneline -5` para manter consistencia com o historico
-9. Nunca fazer commit diretamente nas branches bloqueadas `main`, `homolog` e `dev` — verificar a branch atual antes de commitar e, se estiver em uma dessas, criar uma nova branch para receber as mudancas
+9. Nunca fazer commit diretamente nas branches bloqueadas `main` — verificar a branch atual antes de commitar e, se estiver em uma dessas, criar uma nova branch para receber as mudancas
 10. Se a branch atual nao for bloqueada, avaliar se ela faz sentido para o contexto das modificacoes; se nao fizer, criar uma nova branch a partir de `main`
-11. Sempre iniciar novas implementacoes a partir da branch `main`, exceto quando uma branch ja existente fizer sentido para as alteracoes em curso
+11. Sempre iniciar novas implementacoes a partir da branch `main`, exceto quando uma branch ja existente fizer sentido para as alteracoes em curso e esteja sincronizada com a main
 12. Priorizar commits pequenos e focados para facilitar a revisao e aprovacao do PR
-13. Nunca fazer merge automatizado — o merge para `main`/`homolog`/`dev` e sempre feito manualmente via PR aprovado
-14. Commits que alteram codigo/config que afeta a imagem (app, infra, dependencias) devem ser acompanhados do incremento das versoes da imagem nginx nos tres `docker-compose`: `docker-compose.yml` (tag `prod_<N>`), `docker-compose-homologacao.yml` (tag `hml_<N>`) e `docker-compose-development.yml` (tag `dev_<N>`). Incrementar apenas o numero, mantendo o prefixo. Os tres arquivos devem entrar no mesmo commit das alteracoes. Commits que alteram **apenas documentacao** (`documentation/`, `docs/`, `*.md`) nao precisam desse bump
-15. Antes de commitar em uma branch nao bloqueada, verificar se ela esta atualizada com `origin/main`. Se estiver desatualizada, fazer merge/rebase primeiro. Se houver conflitos, **nunca** resolver automaticamente — listar cada conflito e perguntar explicitamente ao usuario como resolver arquivo por arquivo
-16. Apos cada commit, sempre executar `git push origin <branch-atual>` para publicar no remoto. Nunca fazer push em `main`, `homolog` ou `dev` — apenas na branch de feature/fix/chore
+13. Nunca fazer merge automatizado — o merge para `main` e sempre feito manualmente via PR aprovado
+14. Antes de commitar em uma branch nao bloqueada, verificar se ela esta atualizada com `origin/main`. Se estiver desatualizada, fazer merge/rebase primeiro. Se houver conflitos, **nunca** resolver automaticamente — listar cada conflito e perguntar explicitamente ao usuario como resolver arquivo por arquivo
+15. Apos cada commit, sempre executar `git push origin <branch-atual>` para publicar no remoto. Nunca fazer push em `main` — apenas na branch de feature/fix/chore
+16. Após o push, abra um PR para main
 
 ## Tipos permitidos
 
-| Tipo | Quando usar |
-|---|---|
-| `feat` | Nova funcionalidade |
-| `fix` | Correcao de bug |
-| `refactor` | Refatoracao sem alterar comportamento |
-| `chore` | Tarefas de manutencao, config, dependencias |
-| `docs` | Apenas documentacao |
-| `style` | Formatacao, espacos, ponto e virgula (sem mudanca de logica) |
-| `perf` | Melhoria de performance |
-| `test` | Adicao ou correcao de testes |
+| Tipo       | Quando usar                                                  |
+| ---------- | ------------------------------------------------------------ |
+| `feat`     | Nova funcionalidade                                          |
+| `fix`      | Correcao de bug                                              |
+| `refactor` | Refatoracao sem alterar comportamento                        |
+| `chore`    | Tarefas de manutencao, config, dependencias                  |
+| `docs`     | Apenas documentacao                                          |
+| `style`    | Formatacao, espacos, ponto e virgula (sem mudanca de logica) |
+| `perf`     | Melhoria de performance                                      |
+| `test`     | Adicao ou correcao de testes                                 |
 
 ## Formato da mensagem
 
@@ -82,36 +82,17 @@ EOF
 3. Executar `git log --oneline -5` para manter consistencia de estilo
 4. Decidir a branch de destino seguindo o fluxo de decisao de branch
 5. Se a branch de destino nao for bloqueada e for reutilizada: sincronizar com `origin/main` (ver "Sincronizar branch atual com `main`"). Se houver conflitos, perguntar ao usuario como resolver cada um antes de continuar
-6. Se as alteracoes nao forem exclusivamente de documentacao, incrementar a versao da imagem nginx nos tres `docker-compose` (ver secao "Bump das versoes da imagem nginx")
-7. Adicionar apenas os arquivos relevantes com `git add <arquivo>` (incluindo os tres `docker-compose`, quando aplicavel)
-8. Redigir mensagem seguindo o padrao
-9. Criar o commit
-10. Executar `git push origin <branch-atual>` para publicar a branch no remoto
-
-## Bump das versoes da imagem nginx
-
-Commit que altera codigo/config que vai para a imagem (app, infra, dependencias) precisa bumpar o numero da tag da imagem `bolsamaisbrasil` no servico `nginx` dos tres arquivos. **Excecao:** commits que alteram somente documentacao (`documentation/`, `docs/`, `*.md`) nao bumpam, pois nao afetam a imagem publicada.
-
-| Arquivo | Padrao da tag |
-|---|---|
-| `docker-compose.yml` | `bolsamaisbrasil:prod_<N>` |
-| `docker-compose-homologacao.yml` | `bolsamaisbrasil:hml_<N>` |
-| `docker-compose-development.yml` | `bolsamaisbrasil:dev_<N>` |
-
-Regras:
-
-- Ler o valor atual de cada arquivo com `Read` (nao adivinhar o numero).
-- Incrementar apenas o contador `<N>` em uma unidade, mantendo o prefixo (`prod_`, `hml_`, `dev_`).
-- Cada arquivo tem seu proprio contador independente — nao sincronizar os tres numeros.
-- Editar a linha `image: bolsamaisbrasil:<prefixo>_<N>` dentro do servico `nginx` com o `Edit` tool.
-- Os tres arquivos devem entrar no mesmo `git add` e commit das alteracoes funcionais — nao criar commit separado so para o bump.
-- Se o commit for revertido ou nao for para frente, lembrar de reverter tambem o bump para nao pular numeros.
+6. Adicionar apenas os arquivos relevantes com `git add <arquivo>`
+7. Redigir mensagem seguindo o padrao
+8. Criar o commit
+9. Executar `git push origin <branch-atual>` para publicar a branch no remoto
+10. Abra PR para main
 
 ## Fluxo de decisao de branch
 
 Antes de commitar, seguir esta arvore de decisao:
 
-1. **A branch atual e bloqueada (`main`, `homolog` ou `dev`)?**
+1. **A branch atual e bloqueada (`main`)?**
    - Sim: criar uma nova branch a partir de `main` (seguindo obrigatoriamente o passo "Atualizar `main` antes de criar nova branch") com nome descritivo do contexto da mudanca (`tipo/descricao-curta`, ex.: `feat/visualizacao-condicional-relatorios`) e commitar nela.
    - Nao: seguir para o proximo passo.
 
@@ -152,7 +133,7 @@ Nao pular essa etapa — ramificar a partir de uma `main` desatualizada gera con
 
 3. **Priorizar commits pequenos e focados**: preferir varios commits pequenos (um por unidade logica de mudanca) em vez de um commit grande misturando escopos. Isso facilita a revisao e a aprovacao do PR.
 
-4. **Nao fazer merge**: apos o commit e o push, abrir PR. O merge para `main`/`homolog`/`dev` e feito manualmente pela equipe.
+4. **Nao fazer merge**: apos o commit e o push, abrir PR. O merge para as branches protegidas do projeto (ex.: `main`) e feito manualmente pela equipe.
 
 ### Nomenclatura de branch
 
