@@ -1,6 +1,6 @@
 ---
 name: k-task
-description: Terceira etapa do fluxo de trabalho. Le spec.md e plan.md e quebra a implementacao em tarefas pequenas e focadas, uma por unidade de commit, cada uma em documentation/specs/<ts>-<slug>/tasks/NN-titulo-curto.md com frontmatter de status, arquivos exatos e skill tatica. Use depois de /k-plan.
+description: Terceira etapa do fluxo de trabalho. Le spec.md e plan.md e quebra a implementacao em tarefas pequenas e focadas, uma por unidade de commit, cada uma em tasks/NN-titulo-curto.md (na pasta de specs do fluxo) com frontmatter de status, arquivos exatos e skill tatica. Use depois de /k-plan.
 ---
 
 # k-task
@@ -14,10 +14,10 @@ Depois que `/k-plan` gravou o `plan.md` e criou a branch. Invocacao:
 ```
 /k-task                        # infere pela branch atual
 /k-task corrigir-crop-banner   # por slug
-/k-task documentation/specs/20260807-143205-corrigir-crop-banner
+/k-task docs/specs/20260807-143205-corrigir-crop-banner   # ou documentation/specs/..., conforme a raiz detectada pelo k-spec
 ```
 
-Sem argumento, resolva pelo nome da branch: `<prefixo>/<slug>` → `documentation/specs/*-<slug>`. Se o glob achar mais de um diretorio, **liste e pergunte**. Nunca chute.
+Sem argumento, resolva pelo nome da branch: `<prefixo>/<slug>` → `<raiz-de-specs>/*-<slug>`, tentando `docs/specs/` e `documentation/specs/`. Se o glob achar mais de um diretorio, **liste e pergunte**. Nunca chute.
 
 ## Objetivo
 
@@ -31,7 +31,7 @@ Leia `spec.md` e `plan.md` inteiros. O `tipo` da spec e a `Escolhida` do plano g
 
 Se nao houver `plan.md`, pare e mande rodar `/k-plan` antes.
 
-Confirme que voce esta na branch da spec. Se estiver em `main`, `homolog` ou `dev`, **pare** — a branch e criada pelo `k-plan`.
+Confirme que voce esta na branch da spec. Se estiver numa branch protegida do projeto (ex.: `main`), **pare** — a branch e criada pelo `k-plan`.
 
 ### 2. Quebrar em tarefas
 
@@ -49,7 +49,7 @@ Regras de tamanho:
 
 ### 3. Escrever os arquivos de tarefa
 
-Um arquivo por tarefa, em `documentation/specs/<ts>-<slug>/tasks/`, numerado em ordem de execucao com dois digitos:
+Um arquivo por tarefa, em `<raiz-de-specs>/<ts>-<slug>/tasks/`, numerado em ordem de execucao com dois digitos:
 
 ```
 tasks/01-teste-crop-preserva-proporcao.md
@@ -67,7 +67,7 @@ tipo: fix
 status: pendente
 skill: testing
 arquivos:
-  - application/Helpers/Functions.php
+  - caminho/relativo/do/arquivo.ext
 commit:
 ---
 ```
@@ -109,24 +109,11 @@ tentador nesta tarefa especifica.
 
 ### 4. Skills taticas
 
-Preencha o campo `skill` com a tatica correspondente:
-
-| Tipo de tarefa | Skill |
-|---|---|
-| Teste (`Unit`/`Integration`/`E2E`) | `testing` |
-| Service da API | `criar-service-api` |
-| Controller da API | `criar-controller-api` |
-| Query/SQL | `query-mysql-segura` |
-| Documentacao de endpoint | `documentar-api` |
-| Refatoracao sem mudar comportamento | `refatoracao-segura-legado` |
-
-Se nenhuma se aplica, deixe o campo vazio — o executor segue o padrao existente no arquivo.
+Preencha o campo `skill` de forma dinamica: olhe as skills disponiveis em `.claude/skills/` do projeto atual e escolha a que casa com a natureza da tarefa (ex.: uma skill de teste para tarefa de teste, uma skill de camada de dados para tarefa de query, uma skill de documentacao para tarefa de doc). Se nenhuma existente casar, deixe o campo vazio — o executor segue o padrao existente no arquivo.
 
 ### 5. Tarefa de documentacao
 
 Crie somente se o `## Documentacao afetada` do plano apontar um destino. Se o plano disse `Nenhuma`, nao invente tarefa de doc.
-
-Nao crie tarefa de bump de imagem. O bump dos tres `docker-compose` e responsabilidade da skill `commit`, no mesmo commit da alteracao.
 
 ### 6. Confirmar e commitar
 
@@ -135,7 +122,7 @@ Mostre a lista numerada ao usuario (numero, titulo, arquivos, skill) e **confirm
 Depois:
 
 ```bash
-git add documentation/specs/<ts>-<slug>/tasks/
+git add <raiz-de-specs>/<ts>-<slug>/tasks/
 git commit -m "docs(spec): tarefas de <titulo>"
 ```
 
@@ -144,7 +131,7 @@ Sem push.
 ### 7. Encerrar
 
 ```
-<n> tarefas criadas em documentation/specs/<ts>-<slug>/tasks/
+<n> tarefas criadas em <raiz-de-specs>/<ts>-<slug>/tasks/
 1. <titulo> — <arquivos>
 2. ...
 Proximo passo: /k-execute
@@ -154,7 +141,7 @@ Proximo passo: /k-execute
 
 - Nao altere codigo de aplicacao nesta etapa. O `k-task` descreve; o `k-execute` implementa.
 - Nao tome decisao tecnica que o plano nao tomou. Se faltar decisao, volte ao `/k-plan`.
-- Nunca faca push nem merge em `main`, `homolog` ou `dev`.
+- Nunca faca push nem merge nas branches protegidas do projeto (ex.: `main`).
 - Nao crie tarefa que exija investigacao — o executor roda com contexto minimo e nao vai pesquisar.
 - Nao agrupe propositos diferentes numa tarefa so para reduzir o numero de arquivos.
-- Nao use recursos de PHP 8+ nas instrucoes.
+- Nao proponha recursos de linguagem/versao alem do que o projeto ja usa nas instrucoes — respeite as convencoes documentadas (`CLAUDE.md`).
