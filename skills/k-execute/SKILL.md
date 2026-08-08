@@ -1,6 +1,6 @@
 ---
 name: k-execute
-description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes no container, commita e marca a tarefa como concluida. Na ultima tarefa roda a suite completa, faz push e abre o PR. Use depois de /k-task.
+description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes do projeto, commita e marca a tarefa como concluida. Na ultima tarefa roda a suite completa, faz push e abre o PR. Use depois de /k-task.
 ---
 
 # k-execute
@@ -24,11 +24,11 @@ Depois que `/k-task` gravou as tarefas. Invocacao:
 
 ### 1. Localizar a spec
 
-Se o slug veio por argumento, use. Senao, resolva pela branch: `git branch --show-current` → `<prefixo>/<slug>` → `documentation/specs/*-<slug>`.
+Se o slug veio por argumento, use. Senao, resolva pela branch: `git branch --show-current` → `<prefixo>/<slug>` → `<raiz-de-specs>/*-<slug>`, tentando `docs/specs/` e `documentation/specs/`.
 
 Se o glob achar mais de um diretorio, ou a branch nao tiver slug reconhecivel, **liste e pergunte**. Nao chute.
 
-Se estiver em `main`, `homolog` ou `dev`, **pare** — a branch e criada pelo `k-plan`.
+Se estiver numa branch protegida do projeto (ex.: `main`), **pare** — a branch e criada pelo `k-plan`.
 
 ### 2. Escolher a tarefa
 
@@ -43,29 +43,24 @@ Marque `status: em-andamento` antes de comecar.
 ### 3. Executar
 
 - Leia `spec.md`, `plan.md` e o arquivo da tarefa **antes de tocar em arquivo**. O contexto vem dos arquivos, nao da memoria da sessao.
-- Se o frontmatter tiver `skill`, invoque essa skill tatica (`testing`, `criar-service-api`, `criar-controller-api`, `query-mysql-segura`, `documentar-api`, `refatoracao-segura-legado`) e siga o padrao dela.
+- Se o frontmatter tiver `skill`, invoque essa skill tatica e siga o padrao dela.
 - Altere **apenas** os arquivos listados em `arquivos`. Se faltar arquivo, atualize o frontmatter da tarefa e explique o porque; nao alargue o escopo em silencio.
 - Respeite o `## Nao faca` da tarefa e o `## Nao entra neste trabalho` do plano.
 - TDD: tarefa de teste termina com o teste falhando pelo motivo certo; tarefa de implementacao termina com ele passando.
 
 ### 4. Gate de conclusao
 
-Obrigatorio antes do commit. PHP e composer rodam **no container**, nunca no PHP do host.
+Obrigatorio antes do commit. Extraia o comando de lint e de teste da documentacao do projeto (`CLAUDE.md`, `README`); se nao estiver documentado, pergunte ao usuario uma vez. Rode no ambiente que o projeto define (container, local, etc.) — nunca fora dele quando o projeto exigir um ambiente especifico.
 
-```bash
-docker compose -p bolsamaisbrasil-local -f docker-compose-local.yml exec php php -l <arquivo alterado>
-docker compose -p bolsamaisbrasil-local -f docker-compose-local.yml exec php vendor/bin/phpunit --testsuite <Unit|Integration|E2E>
-```
-
-Rode **apenas a testsuite afetada** pela tarefa. `Integration` e `E2E` exigem o stack local de pe (ver skill `testing`).
+Rode **apenas a suite/camada de teste afetada** pela tarefa. Camadas que dependem de infraestrutura externa (ex.: integracao, E2E) exigem o ambiente correspondente de pe.
 
 Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha, **pare**: marque `status: bloqueada`, registre no corpo da tarefa a linha decisiva da saida e o diagnostico, e devolva ao usuario. Nao commite.
 
 ### 5. Commitar
 
-Use a skill `commit`. Ela cuida da mensagem em Conventional Commits, do bump das tags nos tres `docker-compose` e das regras de branch.
+Use a skill `k-commit`. Ela cuida da mensagem em Conventional Commits e das regras de branch.
 
-**Override desta skill:** a skill `commit` faz push apos cada commit; aqui o push acontece **uma unica vez**, no encerramento. Commite sem push durante as tarefas.
+**Override desta skill:** a skill `k-commit` faz push apos cada commit; aqui o push acontece **uma unica vez**, no encerramento. Commite sem push durante as tarefas.
 
 Adicione somente os arquivos da tarefa, mais o arquivo da propria tarefa e os `docker-compose` quando o bump se aplicar. Nunca `git add .`.
 
@@ -100,11 +95,7 @@ No encerramento, liste os achados e pergunte se o usuario quer rodar `/k-spec` p
 
 Quando nao restar tarefa `pendente` nem `em-andamento`:
 
-1. **Suite completa** no container:
-
-```bash
-docker compose -p bolsamaisbrasil-local -f docker-compose-local.yml exec php vendor/bin/phpunit
-```
+1. **Suite completa**, com o comando de teste do projeto (o mesmo identificado no gate da etapa 4), no ambiente que o projeto define:
 
 Falhou: pare e reporte. Nao faca push com suite vermelha.
 
@@ -114,15 +105,17 @@ Falhou: pare e reporte. Nao faca push com suite vermelha.
 git push origin <branch-atual>
 ```
 
-3. **Perguntar o alvo do PR.** Padrao sugerido: `dev`. Espere a resposta antes de abrir.
+3. **Perguntar o alvo do PR**, sem sugerir um default fixo — depende do fluxo de branches do projeto. Espere a resposta antes de abrir.
 
-4. **Abrir o PR.** Corpo montado a partir do `spec.md` e do `plan.md`.
+4. **Abrir o PR.** Detecte o mecanismo do projeto: CLI (`gh`, `glab`) se disponivel, senao monte o corpo abaixo e instrua o usuario a abrir manualmente. Corpo montado a partir do `spec.md` e do `plan.md`.
 
 Branch `feat/`, `refactor/`, `chore/`, `docs/`:
 
-```bash
-gh pr create --base <alvo> --title "<titulo da spec>" --body-file - <<'EOF'
-Spec: `documentation/specs/<ts>-<slug>/`
+```
+Titulo: <titulo da spec>
+Base: <alvo>
+
+Spec: `<raiz-de-specs>/<ts>-<slug>/`
 
 ## O que muda
 
@@ -131,14 +124,15 @@ Spec: `documentation/specs/<ts>-<slug>/`
 ## Como testar
 
 <testes manuais, vindos do plan.md>
-EOF
 ```
 
 Branch `fix/`:
 
-```bash
-gh pr create --base <alvo> --title "<titulo da spec>" --body-file - <<'EOF'
-Spec: `documentation/specs/<ts>-<slug>/`
+```
+Titulo: <titulo da spec>
+Base: <alvo>
+
+Spec: `<raiz-de-specs>/<ts>-<slug>/`
 
 ## Causa raiz
 
@@ -159,17 +153,18 @@ Spec: `documentation/specs/<ts>-<slug>/`
 ## Como testar
 
 <testes manuais, vindos do plan.md>
-EOF
 ```
 
-5. Imprima a URL do PR e, se houver, a lista de `## Achados fora do escopo`.
+Com `gh` disponivel, equivalente a `gh pr create --base <alvo> --title "<titulo>" --body-file -` com o corpo acima via heredoc.
+
+5. Imprima a URL do PR (ou a confirmacao de abertura manual) e, se houver, a lista de `## Achados fora do escopo`.
 
 ## Restricoes
 
-- **Nunca faca merge.** O fluxo termina no PR aberto. O merge para `dev`/`homolog`/`main` e manual, feito pela equipe.
-- **Nunca faca push em `main`, `homolog` ou `dev`.**
+- **Nunca faca merge.** O fluxo termina no PR aberto. O merge para as branches protegidas do projeto e manual, feito pela equipe.
+- **Nunca faca push nas branches protegidas do projeto (ex.: `main`).**
 - Nunca use `--no-verify`, `git add .` ou `git add -A`.
 - Nao pule o gate de teste "porque a mudanca e pequena".
 - Nao execute tarefa que nao existe como arquivo em `tasks/`. Se surgir trabalho novo, volte ao `/k-task`.
 - Nao pule tarefa `bloqueada`.
-- Nao use recursos de PHP 8+.
+- Nao proponha recursos de linguagem/versao alem do que o projeto ja usa.
