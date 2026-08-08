@@ -1,6 +1,6 @@
 ---
 name: k-spec
-description: Primeira etapa do fluxo de trabalho. Investiga o codigo, entrevista o usuario ate convergir e escreve documentation/specs/<timestamp>-<slug>/spec.md com a especificacao de comportamento (o que e por que). Use ao iniciar qualquer trabalho com regra de negocio nova/alterada, bug relatado, refactor, chore ou documentacao.
+description: Primeira etapa do fluxo de trabalho. Investiga o codigo com subagentes em paralelo, entrevista o usuario ate convergir e escreve spec.md (contrato de comportamento) na pasta de specs do fluxo. Use ao iniciar qualquer trabalho com regra de negocio nova/alterada, bug relatado, refactor, chore ou documentacao.
 ---
 
 # k-spec
@@ -23,7 +23,7 @@ Ajuste trivial e obvio (typo em texto fixo, constante) pode ir direto, sem spec.
 
 ## Objetivo
 
-Produzir um contrato de comportamento antes de qualquer decisao tecnica. O `spec.md` e a fonte da verdade do fluxo inteiro — substitui a issue.
+Produzir um contrato de comportamento antes de qualquer decisao tecnica. O `spec.md` e a fonte da verdade do fluxo inteiro.
 
 ## Restricao central
 
@@ -41,9 +41,9 @@ Tudo isso pertence a `k-plan`.
 
 **Regra de localizacao, por tipo:**
 
-| Tipo | Pode citar `arquivo:linha`? |
-|---|---|
-| `bug` | Sim, **so para localizar** o sintoma. Nunca para dizer o que mudar. |
+| Tipo                                   | Pode citar `arquivo:linha`?                                                                  |
+| -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `bug`                                  | Sim, **so para localizar** o sintoma. Nunca para dizer o que mudar.                          |
 | `feature`, `refactor`, `chore`, `docs` | Nao. Nem nome de arquivo, classe, metodo, tabela, coluna, rota ou campo de request/response. |
 
 Se a spec de feature ja disser onde mexer, spec e plano viram o mesmo documento e a revisao da spec deixa de ser barata.
@@ -70,25 +70,30 @@ Nenhuma branch e criada aqui. Quem cria e o `k-plan`.
 
 O tipo governa o resto da skill. Lista fechada:
 
-| Tipo | Quando | Prefixo de branch |
-|---|---|---|
-| `feature` | comportamento novo ou alterado | `feat/` |
-| `bug` | divergencia entre esperado e observado | `fix/` |
-| `refactor` | melhora o codigo sem mudar comportamento | `refactor/` |
-| `chore` | dependencia, config, tarefa operacional | `chore/` |
-| `docs` | so documentacao | `docs/` |
+| Tipo       | Quando                                   | Prefixo de branch |
+| ---------- | ---------------------------------------- | ----------------- |
+| `feature`  | comportamento novo ou alterado           | `feat/`           |
+| `bug`      | divergencia entre esperado e observado   | `fix/`            |
+| `refactor` | melhora o codigo sem mudar comportamento | `refactor/`       |
+| `chore`    | dependencia, config, tarefa operacional  | `chore/`          |
+| `docs`     | so documentacao                          | `docs/`           |
 
 Se o pedido nao deixar o tipo obvio, **pergunte** usando o formato abaixo. Nao adivinhe: tipo errado leva a spec, plano e branch errados.
 
-### 3. Ler antes de perguntar
+### 3. Investigar com subagentes em paralelo
 
-Nunca gaste pergunta com fato que o repositorio responde. Antes da primeira pergunta, levante:
+Nunca gaste pergunta com fato que o repositorio responde. Antes da primeira pergunta, dispare subagentes **somente de leitura**, um por eixo, **todos na mesma mensagem** para rodarem juntos.
 
-- `documentation/arquitetura.md`, `documentation/api/`, `documentation/business-rules/`, `documentation/integrations/`
-- codigo do fluxo mencionado (rota, controller, service, model, view)
-- comportamento atual, se o trabalho altera algo existente
+Eixos por tipo:
 
-Para tipo `bug`, percorra o caminho da requisicao antes de qualquer hipotese e anote `arquivo:linha` de cada ponto: entrada e portal, controller/action, services/models/helpers, query SQL, view/response.
+| Tipo | Eixos |
+|---|---|
+| `feature`, `refactor`, `chore`, `docs` | documentacao existente do projeto, por categoria (arquitetura; regras de negocio; contratos de API; integracoes externas) — o subagente localiza onde cada categoria vive neste repo e reporta a ausencia quando nao encontrar; comportamento atual do fluxo mencionado, se o trabalho altera algo existente; specs/plans anteriores relacionados na pasta de specs do fluxo |
+| `bug` | caminho de execucao completo ate o sintoma, com `arquivo:linha` em cada ponto (entrada, camada de controle, regra de negocio/servico, acesso a dados, saida/resposta) — um unico subagente, trace sequencial, nao paralelizavel dentro dele; documentacao/regra que define o comportamento esperado; specs/plans anteriores relacionados na pasta de specs do fluxo |
+
+Cada subagente devolve **conclusao com `arquivo:linha`**, nunca despejo de codigo. Para o eixo de specs anteriores, se a pasta de specs nao existir ou nada relacionado for encontrado, o subagente reporta isso explicitamente — nao e erro.
+
+Mostre ao usuario uma sintese curta dos achados, com `arquivo:linha`, **antes da primeira pergunta** da etapa seguinte. Ele pode corrigir um achado errado antes que vire premissa da entrevista.
 
 ### 4. Entrevistar ate convergir
 
@@ -130,8 +135,8 @@ vencida, e o botao inerte vira ticket de suporte.
 
 O que perguntar, por tipo:
 
-- `feature`: comportamento em caso de borda, o que fica fora do escopo, quais portais sao afetados, o que acontece em erro, quem pode fazer a acao
-- `bug`: em qual portal e com qual perfil ocorre, qual dado de entrada exato reproduz, qual e o comportamento correto quando a documentacao nao diz, o quanto dói na pratica
+- `feature`: comportamento em caso de borda, o que fica fora do escopo, quais partes do sistema sao afetadas, o que acontece em erro, quem pode fazer a acao
+- `bug`: em qual parte do sistema e com qual perfil ocorre, qual dado de entrada exato reproduz, qual e o comportamento correto quando a documentacao nao diz, o quanto dói na pratica
 - `refactor`: qual o incomodo concreto, qual o limite do que pode ser tocado, o que precisa continuar identico
 - `chore` / `docs`: qual o gatilho e o que conta como pronto
 
@@ -148,13 +153,9 @@ Se as duas coisas coincidirem, **nao ha bug**. Diga isso ao usuario e pare — n
 
 Siga a escada, do mais forte para o mais fraco. Pare no primeiro degrau que funcionar.
 
-1. **Teste automatizado** — se o bug e alcancavel por logica pura, escreva um teste PHPUnit descartavel que falhe, rode no container e cole a **linha decisiva** da saida na spec. Apague o teste depois; o teste definitivo e tarefa do `k-task`.
+1. **Teste automatizado** — se o bug e alcancavel por logica pura, escreva um teste descartavel que falhe, na linguagem/framework do projeto. Extraia o comando de teste da documentacao do projeto (`CLAUDE.md`, `README`); se nao estiver documentado, pergunte ao usuario uma vez. Rode o teste filtrando so o caso novo e cole a **linha decisiva** da saida na spec. Apague o teste depois; o teste definitivo e tarefa do `k-task`.
 
-```bash
-docker compose -p bolsamaisbrasil-local -f docker-compose-local.yml exec php vendor/bin/phpunit --filter <NomeDoTeste>
-```
-
-2. **Passos manuais** — se depende de HTTP, sessao, upload ou portal, escreva passos numerados que qualquer pessoa consiga seguir, com o resultado errado observado no ultimo passo.
+2. **Passos manuais** — se depende de interacao do usuario, sessao ou estado externo, escreva passos numerados que qualquer pessoa consiga seguir, com o resultado errado observado no ultimo passo.
 
 3. **Nao reproduzido** — se nem isso, registre a secao como `Nao reproduzido` e descreva o **caminho de execucao no codigo** que leva ao erro, com `arquivo:linha` e a condicao de entrada necessaria.
 
@@ -162,12 +163,14 @@ Nunca invente passos que voce nao executou nem verificou no codigo.
 
 ### 7. Escrever o spec.md
 
+Detecte a pasta de specs do fluxo: se o repositorio ja tem uma pasta `docs/` na raiz, a raiz e `docs/specs/`; senao, `documentation/specs/`. Use a mesma raiz em todo o resto desta skill.
+
 Crie o diretorio com timestamp e slug:
 
 ```bash
 TS=$(date +%Y%m%d-%H%M%S)
 SLUG=<slug-kebab-case-curto>
-mkdir -p documentation/specs/$TS-$SLUG
+mkdir -p <raiz-detectada>/specs/$TS-$SLUG
 ```
 
 O slug e curto, em kebab-case, sem acento, e vai virar o nome da branch no `k-plan`.
@@ -197,14 +200,16 @@ O que entra.
 
 O que explicitamente nao entra (protege contra crescimento silencioso).
 
-## Atores e portais afetados
+## Atores e ambientes afetados
 
-Quem executa e onde (site, area do aluno, portal do parceiro, admin, API, afiliado).
+Quem executa a acao e em qual parte do sistema (ex.: interface principal, painel administrativo, API, processo em background) — adapte a realidade do projeto.
 
 ## Comportamento esperado
 
 ### Caminho feliz
+
 ### Casos de borda
+
 ### Casos de erro
 
 Cada cenario no formato: dado <contexto>, quando <acao>, entao <resultado observavel>.
@@ -236,8 +241,8 @@ O que esta errado, em uma ou duas frases, em termos observaveis.
 
 ## Arquivos de referencia
 
-- `caminho/Arquivo.php:42` — o que esse ponto faz no fluxo
-- `caminho/Outro.php:88` — ...
+- `caminho/arquivo:42` — o que esse ponto faz no fluxo
+- `caminho/outro:88` — ...
 
 Localizacao apenas. Nao diga o que deve mudar.
 
@@ -252,7 +257,7 @@ Teste, passos numerados ou `Nao reproduzido` com o caminho de execucao — confo
 
 ## Impactos
 
-- quem sofre e em qual portal
+- quem sofre e em qual parte do sistema
 - frequencia (todo acesso, so em caso de borda, so com dado especifico)
 - severidade: o que se perde ou quebra
 
@@ -270,7 +275,7 @@ Mostre a spec ao usuario e **confirme antes de gravar**.
 ### 8. Encerrar
 
 ```
-Spec criada: documentation/specs/<ts>-<slug>/spec.md
+Spec criada: <raiz-detectada>/specs/<ts>-<slug>/spec.md
 Tipo: <tipo>
 Proximo passo: /k-plan
 ```
