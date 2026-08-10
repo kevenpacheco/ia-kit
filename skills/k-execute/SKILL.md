@@ -1,6 +1,6 @@
 ---
 name: k-execute
-description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes do projeto, commita e marca a tarefa como concluida. Na ultima tarefa roda a suite completa, faz push e abre o PR. Use depois de /k-task.
+description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes do projeto, commita (via k-commit) e marca a tarefa como concluida. Na ultima tarefa roda a suite completa e pergunta se quer subir agora; se sim, delega ao k-commit o push, a revisao, o PR e o merge. Nunca roda git/gh diretamente. Use depois de /k-task.
 ---
 
 # k-execute
@@ -58,9 +58,7 @@ Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha
 
 ### 5. Commitar
 
-Use a skill `k-commit`. Ela cuida da mensagem em Conventional Commits e das regras de branch.
-
-**Override desta skill:** a skill `k-commit` faz push apos cada commit; aqui o push acontece **uma unica vez**, no encerramento. Commite sem push durante as tarefas.
+Toda operacao de git e responsabilidade exclusiva da skill `k-commit` — o `k-execute` nunca roda `git`/`gh` diretamente. Chame `k-commit` no **modo 2b (commit)**: ela cuida da mensagem em Conventional Commits e das regras de branch, e para depois do commit — sem push, sem PR, sem merge. Push, revisao, PR e merge ficam com o Encerramento abaixo, depois da ultima tarefa, via `k-commit` no **modo 2c (ciclo de shipping)**.
 
 Adicione somente os arquivos da tarefa, mais o arquivo da propria tarefa e os `docker-compose` quando o bump se aplicar. Nunca `git add .`.
 
@@ -93,21 +91,22 @@ No encerramento, liste os achados e pergunte se o usuario quer rodar `/k-spec` p
 
 ## Encerramento
 
+Toda operacao de git/gh a partir daqui e responsabilidade exclusiva da skill `k-commit` — o `k-execute` nunca roda `git`/`gh` diretamente. O `k-execute` decide o **que** (alvo, titulo, corpo do PR, a partir do contexto de negocio de `spec.md`/`plan.md`); o `k-commit` decide o **como**.
+
 Quando nao restar tarefa `pendente` nem `em-andamento`:
 
 1. **Suite completa**, com o comando de teste do projeto (o mesmo identificado no gate da etapa 4), no ambiente que o projeto define:
 
-Falhou: pare e reporte. Nao faca push com suite vermelha.
+Falhou: pare e reporte. Nao chame o `k-commit` com suite vermelha.
 
-2. **Push unico**:
+2. **Perguntar se e hora de subir**: todas as tarefas ja estao comitadas localmente (uma por uma, via `k-commit` modo 2b). Pergunte ao usuario: "quer subir agora (push + revisao + PR + merge, via `k-commit`) ou parar aqui?"
 
-```bash
-git push origin <branch-atual>
-```
+- Se nao: pare. As tarefas ficam comitadas localmente, nada e pushado. Nao ha proxima etapa `k-*` pra sugerir — a decisao de subir fica pra depois (manual, ou chamando `/k-execute` de novo).
+- Se sim: continue para os passos seguintes.
 
 3. **Perguntar o alvo do PR**, sem sugerir um default fixo — depende do fluxo de branches do projeto. Espere a resposta antes de abrir.
 
-4. **Abrir o PR.** Detecte o mecanismo do projeto: CLI (`gh`, `glab`) se disponivel, senao monte o corpo abaixo e instrua o usuario a abrir manualmente. Corpo montado a partir do `spec.md` e do `plan.md`.
+4. **Montar o titulo e o corpo do PR** a partir do `spec.md` e do `plan.md` — esse conteudo de negocio e responsabilidade do `k-execute`, nao do `k-commit`.
 
 Branch `feat/`, `refactor/`, `chore/`, `docs/`:
 
@@ -155,15 +154,13 @@ Spec: `<raiz-de-specs>/<ts>-<slug>/`
 <testes manuais, vindos do plan.md>
 ```
 
-Com `gh` disponivel, equivalente a `gh pr create --base <alvo> --title "<titulo>" --body-file -` com o corpo acima via heredoc.
+5. **Chamar o `k-commit`** no **modo 2c (ciclo de shipping)**, passando: branch atual, alvo escolhido (passo 3) e o titulo/corpo montados (passo 4, template acima). O `k-commit` executa, nessa ordem: revisao automatizada -> push unico -> abertura do PR (imprimindo a URL) -> pergunta de merge, so se o alvo for uma branch protegida do projeto (ex.: `main`) -> limpeza da branch se aprovado. Sem `gh` disponivel, o `k-commit` monta o corpo com o conteudo recebido e instrui a abertura manual.
 
-5. Imprima a URL do PR (ou a confirmacao de abertura manual) e, se houver, a lista de `## Achados fora do escopo`.
+6. Se houver achados fora do escopo registrados durante as tarefas, liste-os e pergunte se o usuario quer rodar `/k-spec` para cada um. Isso e paralelo ao passo 5 e nao depende dele.
 
 ## Restricoes
 
-- **Nunca faca merge.** O fluxo termina no PR aberto. O merge para as branches protegidas do projeto e manual, feito pela equipe.
-- **Nunca faca push nas branches protegidas do projeto (ex.: `main`).**
-- Nunca use `--no-verify`, `git add .` ou `git add -A`.
+- Nunca rode `git`/`gh` diretamente para commit, branch, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 5 do Encerramento).
 - Nao pule o gate de teste "porque a mudanca e pequena".
 - Nao execute tarefa que nao existe como arquivo em `tasks/`. Se surgir trabalho novo, volte ao `/k-task`.
 - Nao pule tarefa `bloqueada`.
