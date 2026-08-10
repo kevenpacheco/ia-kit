@@ -187,9 +187,9 @@ Se a doc ja dizia o certo e o codigo e que estava errado, `Nenhuma`.
 
 Omita as secoes que nao se aplicam ao tipo. Nao deixe secao vazia com "N/A".
 
-### 9. Criar a branch e commitar
+### 9. Garantir a branch
 
-A branch nasce aqui, sempre a partir da `main` atualizada. Prefixo pelo `tipo` do frontmatter da spec:
+Toda operacao de git/gh e responsabilidade exclusiva da skill `k-commit` — o `k-plan` nunca roda `git`/`gh` diretamente. A branch nasce aqui, sempre a partir da `main` atualizada. Prefixo pelo `tipo` do frontmatter da spec:
 
 | Tipo | Prefixo |
 |---|---|
@@ -199,25 +199,23 @@ A branch nasce aqui, sempre a partir da `main` atualizada. Prefixo pelo `tipo` d
 | `chore` | `chore/` |
 | `docs` | `docs/` |
 
-```bash
-git checkout main
-git pull origin main
-git checkout -b <prefixo>/<slug>
-git add <raiz-de-specs>/<ts>-<slug>/spec.md <raiz-de-specs>/<ts>-<slug>/plan.md
-git commit -m "docs(spec): <titulo>"
-```
-
-O slug da branch e o mesmo do diretorio da spec, **sem o timestamp** — e assim que o `k-task` e o `k-execute` reencontram a spec.
+Chame a skill `k-commit` no **modo 2a (garantir a branch)**, informando o nome exato `<prefixo>/<slug>`. O slug da branch e o mesmo do diretorio da spec, **sem o timestamp** — e assim que o `k-task` e o `k-execute` reencontram a spec. Isso e automatico, sem pergunta ao usuario — `k-task` e `k-execute` precisam de uma branch de feature de pe pra funcionar, independente de quando o spec+plan forem comitados.
 
 Se houver alteracao local nao commitada de outro trabalho, **pare e pergunte** antes de trocar de branch. Nao faca `stash` automatico.
 
-Sem push. O push acontece uma unica vez, no encerramento do `k-execute`.
+### 10. Perguntar sobre o commit
 
-### 10. Encerrar
+Pergunte ao usuario: comitar `spec.md` + `plan.md` agora (via `k-commit`, modo 2b — commit) ou seguir pra `/k-task` sem comitar?
+
+- Se comitar: chame `k-commit` (modo 2b) com os arquivos `<raiz-de-specs>/<ts>-<slug>/spec.md` e `<raiz-de-specs>/<ts>-<slug>/plan.md` e a mensagem sugerida `docs(spec): <titulo>`. Sem push, sem PR — o `k-commit` para depois do commit.
+- Se nao: os arquivos ficam pendentes na branch ja criada; o `k-task` (ou uma chamada futura ao `k-commit`) lida com eles depois.
+
+### 11. Encerrar
 
 ```
 Plano criado: <raiz-de-specs>/<ts>-<slug>/plan.md
-Branch <prefixo>/<slug> criada. Commit: docs(spec): <titulo>
+Branch <prefixo>/<slug> criada.
+Commit: <feito via k-commit: docs(spec): <titulo> | pendente>
 Proximo passo: /k-task
 ```
 
@@ -225,7 +223,7 @@ Proximo passo: /k-task
 
 - Nao altere codigo de aplicacao nesta etapa. O plano descreve; o `k-execute` implementa.
 - Nao quebre em tarefas aqui. Isso e `k-task`.
-- Nunca faca push nem merge nas branches protegidas do projeto (ex.: `main`).
+- Nunca rode `git`/`gh` diretamente para branch, commit, push, PR ou merge — sempre delegue ao `k-commit` (ver etapas 9 e 10).
 - Nao proponha versao de linguagem, framework ou biblioteca alem do que o projeto ja usa, sem dor concreta e pedido explicito — respeite as convencoes documentadas em `CLAUDE.md`.
 - Nao invente camada nova em CRUD simples, consulta administrativa ou bugfix pequeno em area legada.
 - Nao misture bugfix com refatoracao. Melhoria que apareceu no caminho vai para `## Nao entra neste trabalho`.
