@@ -46,15 +46,18 @@ Marque `status: em-andamento` antes de comecar.
 - Se o frontmatter tiver `skill`, invoque essa skill tatica e siga o padrao dela.
 - Altere **apenas** os arquivos listados em `arquivos`. Se faltar arquivo, atualize o frontmatter da tarefa e explique o porque; nao alargue o escopo em silencio.
 - Respeite o `## Nao faca` da tarefa e o `## Nao entra neste trabalho` do plano.
-- TDD: tarefa de teste termina com o teste falhando pelo motivo certo; tarefa de implementacao termina com ele passando.
+- TDD: o ciclo acontece **dentro** da tarefa. Para cada item de `## Ciclos TDD`, nesta ordem: escreva o teste, rode-o, confirme que falha pelo motivo certo, so entao implemente ate passar. O vermelho existe durante a execucao e **nunca vira commit**.
+- A tarefa so termina quando todos os ciclos estao verdes. Tarefa nunca termina vermelha.
 
 ### 4. Gate de conclusao
 
 Obrigatorio antes do commit. Extraia o comando de lint e de teste da documentacao do projeto (`CLAUDE.md`, `README`); se nao estiver documentado, pergunte ao usuario uma vez. Rode no ambiente que o projeto define (container, local, etc.) — nunca fora dele quando o projeto exigir um ambiente especifico.
 
-Rode **apenas a suite/camada de teste afetada** pela tarefa. Camadas que dependem de infraestrutura externa (ex.: integracao, E2E) exigem o ambiente correspondente de pe.
+Rode **apenas as camadas de teste afetadas** pela tarefa — a tarefa e vertical e pode tocar mais de uma. Camadas que dependem de infraestrutura externa (ex.: integracao, E2E) exigem o ambiente correspondente de pe.
 
-Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha, **pare**: marque `status: bloqueada`, registre no corpo da tarefa a linha decisiva da saida e o diagnostico, e devolva ao usuario. Nao commite.
+**Nunca commite com teste vermelho.** Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha, **pare**: marque `status: bloqueada`, registre no corpo da tarefa a linha decisiva da saida, o diagnostico e **quais ciclos ficaram verdes**, e devolva ao usuario. Nao commite.
+
+Consequencia esperada: o trabalho parcial (teste e implementacao incompletos) fica **no working tree, nao comitado**. E o preco de nunca ter testsuite vermelha no historico. Diga isso ao usuario ao devolver, para ele saber onde o codigo esta.
 
 ### 5. Commitar
 
@@ -162,6 +165,7 @@ Spec: `<raiz-de-specs>/<ts>-<slug>/`
 
 - Nunca rode `git`/`gh` diretamente para commit, branch, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 5 do Encerramento).
 - Nao pule o gate de teste "porque a mudanca e pequena".
+- Nao commite com teste vermelho, em hipotese nenhuma. Vermelho so existe dentro da execucao da tarefa, entre escrever o teste e implementar.
 - Nao execute tarefa que nao existe como arquivo em `tasks/`. Se surgir trabalho novo, volte ao `/k-task`.
 - Nao pule tarefa `bloqueada`.
 - Nao proponha recursos de linguagem/versao alem do que o projeto ja usa.
