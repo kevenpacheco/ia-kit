@@ -29,6 +29,8 @@ O chamador ja decidiu o que fazer e, quando e o caso, ja perguntou ao usuario. T
 
 **b) Commit** — chamado so depois que o chamador confirmou com o usuario que e hora de comitar (ou, em fluxos que comitam uma unidade de trabalho por vez, porque comitar e parte inerente de concluir essa unidade — sem pergunta extra nesse caso). Adicione os arquivos indicados pelo chamador, redija a mensagem seguindo o padrao desta skill (regras 1-14), comite. **Nunca push, nunca PR, nunca merge nesta acao** — pare depois do commit.
 
+O chamador pode **fixar a branch atual** como destino ("comite aqui, sem trocar de branch"). Nesse caso pule o passo 2 do "Fluxo de decisao de branch" — nao avalie se a branch combina com o conteudo, nao volte pra `main`, nao crie branch nova. E o caso do registro de achado fora do escopo: o arquivo tem contexto diferente do da branch de proposito, e trocar de branch no meio quebraria o trabalho em andamento. O passo 1 continua valendo: em branch bloqueada (`main`), crie uma branch mesmo assim — commit direto na `main` nao acontece em hipotese nenhuma.
+
 **c) Ciclo de shipping** — chamado so quando o chamador ja decidiu, com o usuario, que e hora de subir a mudanca (ex.: no encerramento de um fluxo maior de varios commits). O chamador fornece o alvo do PR e o titulo/corpo ja montados (contexto de negocio de quem chamou, nao reconstruido aqui). Pule a pergunta "ha mais mudancas pendentes" — quem chamou ja decidiu. Rode, na ordem: revisao automatizada -> push unico -> abrir PR com o titulo/corpo recebido -> pergunta de merge -> limpeza (ver "Regras do ciclo de shipping").
 
 ## Regras obrigatorias
@@ -151,6 +153,7 @@ Antes de commitar, seguir esta arvore de decisao:
    - Nao: seguir para o proximo passo.
 
 2. **A branch atual faz sentido para o contexto das mudancas?**
+   - Pulado quando o chamador fixou a branch atual como destino (modo 2b) — ver "Modos de uso".
    - Sim (mesma feature/fix em andamento): antes de commitar, executar a verificacao "Sincronizar branch atual com `main`" abaixo. So prosseguir com o commit apos a branch estar atualizada e sem conflitos.
    - Nao (contexto diferente, tema novo): voltar para `main`, atualizar (ver "Atualizar `main` antes de criar nova branch") e criar nova branch a partir dela.
 
