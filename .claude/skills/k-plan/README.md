@@ -41,7 +41,7 @@ O slug da branch e o mesmo do diretorio da spec, sem o timestamp. E por ele que 
 - Nao toca codigo de aplicacao.
 - Nao quebra em tarefas — isso e `k-task`.
 - Nao faz push. O push e unico, no fim do `k-execute`.
-- Nao coloca bug vizinho neste plano. Achado fora do escopo vira stub via `k-spec` modo desvio, e ela volta pro ponto onde parou.
+- Nao coloca achado fora do escopo neste plano. Ele vira stub via `k-spec` modo desvio, e ela volta pro ponto onde parou.
 
 ## Onde ele para e pergunta
 

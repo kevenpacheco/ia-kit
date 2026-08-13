@@ -145,7 +145,7 @@ Crie somente se o `## Documentacao afetada` do plano apontar um destino. Se o pl
 
 **Grave os arquivos direto, sem pedir confirmacao.** A revisao e a tabela da etapa 7.
 
-Toda operacao de git e responsabilidade exclusiva da skill `k-commit` — o `k-task` nunca roda `git` diretamente. Depois de gravar, pergunte ao usuario: comitar `tasks/` agora (via `k-commit`, modo 2b — commit) ou seguir pra `/k-execute` sem comitar?
+Toda operacao de git e responsabilidade exclusiva da skill `k-commit` — o `k-task` nunca roda `git`/`gh` diretamente. Depois de gravar, pergunte ao usuario: comitar `tasks/` agora (via `k-commit`, modo 2b — commit) ou seguir pra `/k-execute` sem comitar?
 
 - Se comitar: chame `k-commit` (modo 2b) com o diretorio `<raiz-de-specs>/<ts>-<slug>/tasks/` e a mensagem sugerida `docs(spec): tarefas de <titulo>`. Sem push — o `k-commit` para depois do commit.
 - Se nao: os arquivos ficam pendentes na branch; o `k-execute` (ou uma chamada futura ao `k-commit`) lida com eles depois.
@@ -172,7 +172,7 @@ O caminho em `Doc` e relativo a raiz do repositorio.
 
 - Nao altere codigo de aplicacao nesta etapa. O `k-task` descreve; o `k-execute` implementa.
 - Nao tome decisao tecnica que o plano nao tomou. Se faltar decisao, volte ao `/k-plan`.
-- Nunca rode `git` diretamente para commit, push, PR ou merge — sempre delegue ao `k-commit` (ver etapa 6).
+- Nunca rode `git`/`gh` diretamente para branch, commit, push, PR, CI ou merge — sempre delegue ao `k-commit` (ver etapa 6).
 - Nao crie tarefa que exija investigacao — o executor roda com contexto minimo e nao vai pesquisar.
 - Achado fora do escopo notado durante a quebra vira stub via `k-spec` no **modo desvio**, nunca tarefa deste fluxo. Depois de registrar, volte para a etapa 2 (quebrar em tarefas), retomando da tarefa que voce estava montando quando o achado apareceu.
 - **Nunca separe teste e implementacao do mesmo comportamento em tarefas diferentes.** Isso comita testsuite vermelha, que e exatamente o que este fluxo evita.

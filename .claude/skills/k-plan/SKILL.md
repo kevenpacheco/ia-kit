@@ -225,9 +225,9 @@ Proximo passo: /k-task
 
 - Nao altere codigo de aplicacao nesta etapa. O plano descreve; o `k-execute` implementa.
 - Nao quebre em tarefas aqui. Isso e `k-task`.
-- Nunca rode `git`/`gh` diretamente para branch, commit, push, PR ou merge — sempre delegue ao `k-commit` (ver etapas 9 e 10).
+- Nunca rode `git`/`gh` diretamente para branch, commit, push, PR, CI ou merge — sempre delegue ao `k-commit` (ver etapas 9 e 10).
 - Nao proponha versao de linguagem, framework ou biblioteca alem do que o projeto ja usa, sem dor concreta e pedido explicito — respeite as convencoes documentadas em `CLAUDE.md`.
 - Nao invente camada nova em CRUD simples, consulta administrativa ou bugfix pequeno em area legada.
 - Nao misture bugfix com refatoracao. Melhoria que apareceu no caminho vai para `## Nao entra neste trabalho`.
-- Bug vizinho descoberto na investigacao vira stub proprio, chamando `k-spec` no **modo desvio** — nunca item deste plano. Depois de registrar, volte para a etapa 6 (comparar opcoes) no ponto exato onde parou. Nao investigue o achado, nao mude de etapa.
+- Achado fora do escopo descoberto na investigacao vira stub proprio, chamando `k-spec` no **modo desvio** — nunca item deste plano. Depois de registrar, volte para a etapa 6 (comparar opcoes) no ponto exato onde parou. Nao investigue o achado, nao mude de etapa.
 - Se a causa raiz nao puder ser provada, ou a spec estiver ambigua a ponto de impedir a decisao tecnica, pergunte ao usuario — nao chute.

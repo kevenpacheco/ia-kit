@@ -111,7 +111,7 @@ O gate falha **por causa** do achado, nao por erro da propria tarefa.
 2. Marque a tarefa atual `status: bloqueada`, com `motivo: bloqueada por <slug-do-stub>`.
 3. **Pare e apresente as duas saidas ao usuario** (`AskUserQuestion`):
 
-   - **Absorver no escopo atual** — o achado passa a fazer parte deste fluxo. Volte ao `/k-plan` para registrar a decisao e ao `/k-task` para gerar a tarefa; o stub vira `fluxo: descartado`, com `## Por que foi descartado` apontando o fluxo que o absorveu.
+   - **Absorver no escopo atual** — o achado passa a fazer parte deste fluxo. Marque o stub como `fluxo: descartado`, com `## Por que foi descartado` apontando o fluxo que o absorveu, e so entao volte ao `/k-plan` para registrar a decisao e ao `/k-task` para gerar a tarefa.
    - **Inverter a prioridade** — este fluxo fica parado. Grave `depende_de: <slug-do-stub>` no frontmatter do `spec.md` deste fluxo e pare aqui. O trabalho no stub comeca em outra janela, por `/k-spec <slug>`.
 
 **Nao decida sozinho qual das duas.** Alargar o escopo do trabalho e decisao do usuario.
@@ -199,7 +199,7 @@ Diga que eles entram na fila do `/k-spec` **quando este PR mergear**. Nao oferec
 
 ## Restricoes
 
-- Nunca rode `git`/`gh` diretamente para commit, branch, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 6 do Encerramento).
+- Nunca rode `git`/`gh` diretamente para branch, commit, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 6 do Encerramento).
 - Nao corrija achado fora do escopo, nem transforme achado em tarefa deste fluxo por conta propria. Absorver escopo e decisao do usuario.
 - Nao pule o gate de teste "porque a mudanca e pequena".
 - Nao commite com teste vermelho, em hipotese nenhuma. Vermelho so existe dentro da execucao da tarefa, entre escrever o teste e implementar.

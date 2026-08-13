@@ -35,7 +35,7 @@ Entregar uma lista curta de bugs **provados**, cada um com caminho de execucao c
 
 O `k-scan` **nao propoe correcao** e **nao elabora spec**. Ele localiza e prova. Cada achado escolhido vira um stub proprio (`fluxo: pendente`), via `k-spec` modo desvio; o contrato de comportamento so nasce depois, no `k-spec` normal.
 
-Nao cria branch e nao altera codigo. A unica escrita em git e o commit do stub, feito pelo modo desvio via `k-commit` — o `k-scan` nunca roda `git` diretamente.
+Nao cria branch e nao altera codigo. A unica escrita em git e o commit do stub, feito pelo modo desvio via `k-commit` — o `k-scan` nunca roda `git`/`gh` diretamente.
 
 ## Procedimento
 
@@ -108,7 +108,7 @@ Se os stubs foram parar numa branch nova (porque o scan rodou na `main`), diga q
 
 ## Restricoes
 
-- Nao altere codigo e nao crie branch. Nunca rode `git` diretamente: o commit do stub e do `k-commit`, chamado pelo modo desvio.
+- Nao altere codigo e nao crie branch. Nunca rode `git`/`gh` diretamente: o commit do stub e do `k-commit`, chamado pelo modo desvio.
 - Nao rode o `k-spec` completo por achado. Um scan pode confirmar mais bugs do que cabe em uma sessao de entrevista.
 - Nao proponha correcao mesmo que o usuario peca — a correcao e decidida em `/k-plan`.
 - Nao apresente achado refutado nem "cheiro" de codigo sem comportamento errado provado.
