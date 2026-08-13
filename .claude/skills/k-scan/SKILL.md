@@ -1,6 +1,6 @@
 ---
 name: k-scan
-description: Etapa opcional antes do fluxo. Varre um alvo delimitado (diretorio, modulo, fluxo ou diff da branch) com subagentes em paralelo por eixo de defeito, refuta cada achado com um subagente adversarial e apresenta so os confirmados para o usuario escolher quais viram spec. Use ao procurar bugs sem ter um sintoma relatado.
+description: Etapa opcional antes do fluxo. Varre um alvo delimitado (diretorio, modulo, fluxo ou diff da branch) com subagentes em paralelo por eixo de defeito, refuta cada achado com um subagente adversarial e apresenta so os confirmados para o usuario escolher quais viram stub de spec (fluxo pendente), gravados via k-spec modo desvio. Use ao procurar bugs sem ter um sintoma relatado.
 ---
 
 # k-scan
@@ -33,9 +33,9 @@ Entregar uma lista curta de bugs **provados**, cada um com caminho de execucao c
 
 ## Restricao central
 
-O `k-scan` **nao propoe correcao** e **nao cria spec sozinho**. Ele localiza e prova. Cada achado escolhido vira uma spec propria via `/k-spec`.
+O `k-scan` **nao propoe correcao** e **nao elabora spec**. Ele localiza e prova. Cada achado escolhido vira um stub proprio (`fluxo: pendente`), via `k-spec` modo desvio; o contrato de comportamento so nasce depois, no `k-spec` normal.
 
-Nao toca em git: nao cria branch, nao commita, nao altera codigo.
+Nao cria branch e nao altera codigo. A unica escrita em git e o commit do stub, feito pelo modo desvio via `k-commit` — o `k-scan` nunca roda `git` diretamente.
 
 ## Procedimento
 
@@ -89,22 +89,27 @@ Se algum arquivo ficou de fora por limite de alvo ou por nao ter sido lido, **di
 
 ### 5. Encaminhar
 
-Para cada achado escolhido, invoque `/k-spec` com o achado como entrada — **uma spec por bug**. Nao agrupe bugs diferentes numa spec: cada um tem causa raiz, teste de regressao e PR proprios.
+Para cada achado escolhido, chame `k-spec` no **modo desvio** — **um stub por bug**. Nao agrupe bugs diferentes num stub: cada um tem causa raiz, teste de regressao e PR proprios.
 
-O `k-spec` refaz a confirmacao da divergencia e tenta reproduzir; o achado do scan entra como ponto de partida, nao como conclusao.
+Cada stub nasce com `fluxo: pendente`, `tipo` vazio e `origem_etapa: k-scan` (sem `origem_spec`: o scan nao parte de spec nenhuma). A verificacao de duplicata do modo desvio roda **tambem entre os achados deste lote**, nao so contra a fila ja existente.
+
+Nao rode o `k-spec` completo aqui. Entrevista e reproducao de N bugs numa sessao so estouram o contexto, e a decisao de qual atacar primeiro fica melhor com a fila inteira na frente. O `k-spec` normal roda depois, um por vez, e e la que a divergencia e confirmada e a reproducao tentada — o achado do scan entra como ponto de partida, nao como conclusao.
 
 ### 6. Encerrar
 
 ```
 Confirmados: <n>. Escolhidos: <n>.
-Specs criadas:
+Stubs criados (fluxo: pendente) na branch <branch>:
 - <raiz-de-specs>/<ts>-<slug>/ — <titulo>
-Proximo passo: /k-plan
+Proximo passo: /k-spec <slug>, um por vez
 ```
+
+Se os stubs foram parar numa branch nova (porque o scan rodou na `main`), diga que ela precisa de PR para eles entrarem na fila do `/k-spec`.
 
 ## Restricoes
 
-- Nao altere codigo, nao crie branch, nao commite nada.
+- Nao altere codigo e nao crie branch. Nunca rode `git` diretamente: o commit do stub e do `k-commit`, chamado pelo modo desvio.
+- Nao rode o `k-spec` completo por achado. Um scan pode confirmar mais bugs do que cabe em uma sessao de entrevista.
 - Nao proponha correcao mesmo que o usuario peca — a correcao e decidida em `/k-plan`.
 - Nao apresente achado refutado nem "cheiro" de codigo sem comportamento errado provado.
 - Nao varra o repositorio inteiro.
