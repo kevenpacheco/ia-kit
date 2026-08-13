@@ -19,6 +19,8 @@ Depois que `/k-spec` gravou o `spec.md`. Invocacao:
 
 Se houver mais de uma candidata, **liste e pergunte**. Nunca chute a spec.
 
+O `k-plan` so opera em spec com `fluxo: ativo`. Stub (`fluxo: pendente`) fica **fora** da inferencia automatica, mesmo sendo a pasta mais recente sem `plan.md` — ele ainda nao tem contrato de comportamento nem `tipo`, e sem `tipo` nao ha prefixo de branch. Se o usuario apontar um stub explicitamente por slug, avise que o fluxo nao foi iniciado e mande rodar `/k-spec <slug>` antes. Spec sem o campo `fluxo:` (anterior a essa convencao) le-se como `ativo`.
+
 ## Objetivo
 
 Transformar o contrato de comportamento em decisao tecnica registrada: onde a mudanca mora, qual a menor solucao que resolve, o que explicitamente nao entra, e o que pode quebrar.
@@ -37,7 +39,7 @@ Remendo no chamador some do radar e volta pelo proximo chamador. Correcao na ori
 
 Leia `spec.md` inteiro, incluindo o frontmatter. O `tipo` governa as secoes obrigatorias do plano.
 
-Se o arquivo nao tiver as secoes do `k-spec`, pare e mande rodar `/k-spec` antes.
+Se o arquivo nao tiver as secoes do `k-spec`, ou se `fluxo: pendente` / `tipo` vazio, pare e mande rodar `/k-spec` antes.
 
 ### 2. Investigar com subagentes em paralelo
 
@@ -227,5 +229,5 @@ Proximo passo: /k-task
 - Nao proponha versao de linguagem, framework ou biblioteca alem do que o projeto ja usa, sem dor concreta e pedido explicito — respeite as convencoes documentadas em `CLAUDE.md`.
 - Nao invente camada nova em CRUD simples, consulta administrativa ou bugfix pequeno em area legada.
 - Nao misture bugfix com refatoracao. Melhoria que apareceu no caminho vai para `## Nao entra neste trabalho`.
-- Bug vizinho descoberto na investigacao vira spec nova via `/k-spec`, nunca item deste plano.
+- Bug vizinho descoberto na investigacao vira stub proprio, chamando `k-spec` no **modo desvio** — nunca item deste plano. Depois de registrar, volte para a etapa 6 (comparar opcoes) no ponto exato onde parou. Nao investigue o achado, nao mude de etapa.
 - Se a causa raiz nao puder ser provada, ou a spec estiver ambigua a ponto de impedir a decisao tecnica, pergunte ao usuario — nao chute.

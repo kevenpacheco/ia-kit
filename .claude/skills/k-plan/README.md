@@ -10,7 +10,9 @@ Etapa 2 de 4: `k-spec` → **k-plan** → `k-task` → `k-execute`.
 /k-plan docs/specs/20260807-143205-corrigir-crop-banner   # ou documentation/specs/..., conforme a raiz detectada
 ```
 
-Sem argumento, pega a spec mais recente que ainda nao tem `plan.md`. Se houver ambiguidade, lista as candidatas e pergunta.
+Sem argumento, pega a spec mais recente **com `fluxo: ativo`** que ainda nao tem `plan.md`. Se houver ambiguidade, lista as candidatas e pergunta.
+
+Stub (`fluxo: pendente`, `tipo` vazio) nao entra nessa inferencia, mesmo sendo a pasta mais recente sem `plan.md`. Aponte um stub por slug e a skill manda rodar `/k-spec <slug>` antes.
 
 ## O que ela faz
 
@@ -39,6 +41,7 @@ O slug da branch e o mesmo do diretorio da spec, sem o timestamp. E por ele que 
 - Nao toca codigo de aplicacao.
 - Nao quebra em tarefas — isso e `k-task`.
 - Nao faz push. O push e unico, no fim do `k-execute`.
+- Nao coloca bug vizinho neste plano. Achado fora do escopo vira stub via `k-spec` modo desvio, e ela volta pro ponto onde parou.
 
 ## Onde ele para e pergunta
 
