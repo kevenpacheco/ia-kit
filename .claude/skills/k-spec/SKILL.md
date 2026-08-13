@@ -1,6 +1,6 @@
 ---
 name: k-spec
-description: Primeira etapa do fluxo de trabalho. Investiga o codigo com subagentes em paralelo, entrevista o usuario ate convergir e escreve spec.md (contrato de comportamento) na pasta de specs do fluxo. Use ao iniciar qualquer trabalho com regra de negocio nova/alterada, bug relatado, refactor, chore ou documentacao.
+description: Primeira etapa do fluxo de trabalho. Em modo normal, investiga o codigo com subagentes em paralelo, entrevista o usuario ate convergir e escreve spec.md (contrato de comportamento) na pasta de specs do fluxo, com fluxo ativo. Em modo desvio, chamado por outra skill do fluxo, grava um stub fluxo pendente de um achado fora do escopo, sem git, sem entrevista e sem investigacao, e devolve o controle. Use ao iniciar qualquer trabalho com regra de negocio nova/alterada, bug relatado, refactor, chore ou documentacao.
 ---
 
 # k-spec
@@ -20,6 +20,39 @@ Qualquer trabalho que va virar commit e PR:
 - documentacao
 
 Ajuste trivial e obvio (typo em texto fixo, constante) pode ir direto, sem spec.
+
+## Modos de uso
+
+### 1. Normal (invocado por voce)
+
+```
+/k-spec                                       # lista os stubs pendentes e pergunta
+/k-spec erro 500 ao salvar banner sem imagem  # trabalho novo, a partir da descricao
+/k-spec 20260812-093000-cpf-invalido          # elabora um stub pendente ja existente
+```
+
+Roda o procedimento inteiro (etapas 1 a 8) e termina com a spec em `fluxo: ativo`.
+
+### 2. Desvio (chamado internamente por outra skill do fluxo)
+
+Nao e invocado por voce. `k-spec`, `k-plan`, `k-task`, `k-execute` e `k-scan` chamam este modo quando encontram um achado fora do escopo do trabalho em andamento: ele grava um stub `fluxo: pendente` e devolve o controle na hora, sem tocar no fluxo em curso. Ver `## Modo desvio` no fim desta skill.
+
+## Estado do fluxo
+
+Todo `spec.md` carrega `fluxo:` no frontmatter. E a unica fonte de verdade sobre o ciclo de vida do trabalho:
+
+| Valor | Significado | Quem escreve |
+|---|---|---|
+| `pendente` | achado capturado, ninguem elaborou ainda; `tipo` vazio | `k-spec` modo desvio |
+| `ativo` | spec elaborada, contrato de comportamento escrito | `k-spec` modo normal (etapa 7) |
+| `concluido` | todas as tarefas fechadas e suite completa verde | `k-execute` (encerramento) |
+| `descartado` | nao procede, ou foi absorvido por outro fluxo | `k-spec` modo normal; `k-execute` na absorcao |
+
+Spec sem o campo `fluxo:` (anterior a esta convencao) le-se como `ativo`. **Nao preencha retroativamente** — escreva o campo apenas quando ja for gravar aquele arquivo por outro motivo.
+
+`fluxo:` **nao** diz qual e o trabalho corrente. Pode haver varios `ativo` ao mesmo tempo, um por branch aberta. "Qual fluxo estou tocando agora" continua sendo `git branch --show-current`.
+
+Dependencia entre fluxos **nao e estado, e relacao**: vive no campo opcional `depende_de: <slug>`, escrito pelo `k-execute` quando este fluxo fica parado esperando outro entrar. Um fluxo com `depende_de:` continua `ativo` — ele so nao e o proximo. Nao existe valor `bloqueado`: se fosse estado, alguem teria que desbloquear na mao, e ninguem lembra. Quem escreveu tambem nao limpa; o `k-execute` resolve ao retomar o fluxo.
 
 ## Objetivo
 
@@ -52,7 +85,7 @@ Nunca cite caminho de storage, nome de arquivo enviado, canal de log ou metodo i
 
 ## Procedimento
 
-### 1. Sincronizar com a main
+### 1. Sincronizar e escolher o alvo
 
 **Antes do discovery**, garanta que a investigacao acontece sobre o codigo atual:
 
@@ -65,6 +98,20 @@ git pull origin main
 Se `git status` mostrar alteracao nao commitada, **pare e pergunte** antes de trocar de branch. Nao faca `stash` automatico.
 
 Nenhuma branch e criada aqui. Quem cria e o `k-plan`.
+
+Sincronizado, detecte a raiz de specs (regra na etapa 7) e resolva o alvo:
+
+```bash
+grep -rl "^fluxo: pendente" <raiz-de-specs>/
+```
+
+- **Argumento que casa com uma pasta em `<raiz-de-specs>/`** — e um stub. Elabore-o: pasta, slug, `criado_em` e campos `origem_*` ficam como estao; voce preenche o `tipo` (etapa 2) e substitui o corpo inteiro (etapa 7).
+- **Argumento em texto livre** — trabalho novo. Se o texto casar com uma pasta existente por acidente, confirme com o usuario antes de seguir.
+- **Sem argumento** — mostre a fila de stubs `pendente` (slug, titulo, `criado_em`, origem) e pergunte: elaborar um destes ou comecar algo novo? Fila vazia, pergunte o que ele quer fazer.
+
+A fila so enxerga stubs cujo fluxo de origem ja foi mergeado. Stub gravado numa branch ainda aberta nao aparece — e proposital: a spec do desvio deve ser escrita contra o codigo **depois** que o fluxo pai entrar, nao contra um codigo que ainda vai mudar.
+
+Ao elaborar um stub, leia `## Achado`, `## Evidencia` e os campos de origem antes de qualquer coisa: e o unico contexto que sobrou do momento em que o problema foi visto. Se a investigacao mostrar que o achado **nao procede** (falso positivo, ja corrigido, duplicata de outro fluxo), nao crie spec: marque `fluxo: descartado`, escreva no corpo uma secao `## Por que foi descartado` com o motivo, e pare. Descarte sem motivo registrado faz o mesmo achado voltar a fila pela mao da proxima pessoa que tropecar nele.
 
 ### 2. Definir titulo e tipo
 
@@ -79,6 +126,8 @@ O tipo governa o resto da skill. Lista fechada:
 | `docs`     | so documentacao                          | `docs/`           |
 
 Se o pedido nao deixar o tipo obvio, **pergunte** usando o formato abaixo. Nao adivinhe: tipo errado leva a spec, plano e branch errados.
+
+Ao elaborar um stub, o `tipo` vem vazio — e por isso que ele nao pode seguir direto para o `k-plan`. Defina-o aqui, com a mesma pergunta. O titulo do stub foi gerado sem entrevista: corrija-o se estiver ruim, mas **mantenha o slug e a pasta**, que ja estao commitados e referenciados.
 
 ### 3. Investigar com subagentes em paralelo
 
@@ -181,9 +230,14 @@ Frontmatter obrigatorio em todo tipo:
 ---
 titulo: <titulo curto e descritivo>
 tipo: feature | bug | refactor | chore | docs
+fluxo: ativo
 criado_em: <AAAA-MM-DD HH:MM:SS>
 ---
 ```
+
+Campos opcionais, escritos por outras etapas e nunca por voce aqui: `depende_de:` (pelo `k-execute`, ver "Estado do fluxo") e os `origem_*` de um stub.
+
+Ao elaborar um stub, nao recrie o arquivo: preserve `criado_em` (a data do achado, nao a de hoje) e os campos `origem_*`, troque `fluxo: pendente` por `fluxo: ativo`, preencha o `tipo` e **substitua o corpo inteiro** pelo formato do tipo escolhido. O corpo do stub e captura, nao rascunho — nao tente aproveita-lo secao por secao.
 
 #### Corpo — tipos `feature`, `refactor`, `chore`, `docs`
 
@@ -277,12 +331,104 @@ Grave o arquivo direto, **sem pedir confirmacao**. Nao mostre o conteudo da spec
 ```
 Spec criada: <raiz-detectada>/specs/<ts>-<slug>/spec.md
 Tipo: <tipo>
+Fluxo: ativo
 Proximo passo: /k-plan
 ```
 
+Se o alvo era um stub e voce concluiu que nao procede, o encerramento e outro:
+
+```
+Stub descartado: <raiz-de-specs>/<ts>-<slug>/spec.md
+Motivo: <uma linha>
+Nenhuma spec criada.
+```
+
+## Modo desvio (chamado internamente)
+
+Acionado por `k-spec`, `k-plan`, `k-task`, `k-execute` ou `k-scan` quando aparece um achado fora do escopo do trabalho em andamento. O objetivo e **preservar o contexto de quem chamou**: registrar o achado e devolver o controle no mesmo ponto.
+
+Este modo **nao** sincroniza com a `main`, **nao** troca de branch, **nao** entrevista e **nao** dispara subagente de investigacao. Subagente devolve resultado no contexto de quem chamou — investigar aqui queimaria exatamente o contexto que o stub existe para proteger. O stub registra o que a etapa chamadora **ja viu**, nada alem.
+
+### 1. Verificar duplicata
+
+Antes de gravar, procure o mesmo problema no que ja foi capturado:
+
+```bash
+grep -rlE "^fluxo: (pendente|descartado)" <raiz-de-specs>/
+```
+
+Nos arquivos encontrados, procure os caminhos citados no achado:
+
+- casou com um stub `pendente`: mostre-o e pergunte se e o mesmo problema. Se for, **nao grave stub novo** — acrescente a nova evidencia ao `## Evidencia` do existente e siga.
+- casou com um stub `descartado`: avise `esse arquivo ja gerou um achado descartado em <criado_em>, motivo: <motivo>. Gravar mesmo assim?`
+
+`concluido` fica fora da busca de proposito: bug corrigido pode voltar, e nesse caso e achado novo.
+
+Limite conhecido: isso pega duplicata que cita o mesmo arquivo, nao o mesmo bug visto de outro arquivo.
+
+Quando o chamador for o `k-scan`, que grava varios de uma vez, a verificacao roda **tambem entre os achados do proprio lote**.
+
+### 2. Gravar o stub
+
+Mesma raiz e mesma convencao de pasta `<ts>-<slug>` da etapa 7. Titulo e slug sao gerados a partir do sintoma pela etapa que detectou o achado, sem confirmacao do usuario — o `k-spec` normal corrige o titulo depois, junto com o tipo.
+
+```yaml
+---
+titulo: <titulo curto, gerado do sintoma>
+tipo:
+fluxo: pendente
+criado_em: <AAAA-MM-DD HH:MM:SS>
+origem_etapa: k-spec | k-plan | k-task | k-execute | k-scan
+origem_spec: <slug da spec em andamento; vazio quando a origem e k-scan>
+origem_task: <NN-slug da tarefa; vazio quando nao veio do k-execute>
+origem_commit: <SHA curto do HEAD no momento do desvio>
+---
+```
+
+`tipo` fica **vazio** de proposito: e ele que obriga o stub a passar pelo `k-spec` normal antes do `k-plan`. Nao chute — nem todo desvio e bug.
+
+`origem_commit` e o ultimo commit, nao o estado exato que voce estava vendo (no `k-execute`, o desvio quase sempre acontece com a arvore suja). Serve como ancora temporal, nao como reproducao.
+
+Corpo, tres secoes e nada mais:
+
+```markdown
+## Achado
+
+`arquivo:linha`, condicao de entrada que dispara o problema, e comportamento errado resultante.
+
+## Evidencia
+
+O que foi observado de fato: a linha decisiva da saida do teste, o log, ou o trecho de codigo que prova a condicao. Nunca suposicao.
+
+## Por que nao entrou no fluxo atual
+
+Uma linha. Ex.: "fora do escopo da spec <slug>", "toca outro modulo", "exige decisao de produto".
+```
+
+Documento de captura, nao rascunho de spec. **Nao** use os cabecalhos do `spec.md` completo: stub que se parece com spec pronta e lido como contrato daqui a duas semanas.
+
+### 3. Commitar
+
+Chame `k-commit` no **modo 2b (commit)** com o arquivo do stub, a mensagem `docs(spec): registrar achado <titulo>` e a branch atual **fixada como destino** — o stub tem contexto diferente do da branch de proposito, e sem isso o `k-commit` trocaria de branch no meio do trabalho. Sem push, sem PR.
+
+O stub fica na branch do fluxo em andamento e chega na `main` quando aquele PR mergear. Ate la nao aparece na fila do `k-spec` — proposital.
+
+Unica excecao: se o desvio acontecer estando na `main` (tipico do `k-scan`, que nao exige branch), o `k-commit` cria uma branch para receber o stub — commit direto na `main` nao acontece. Nesse caso avise o usuario em qual branch os stubs ficaram e que ela precisa de PR para eles entrarem na fila.
+
+### 4. Devolver o controle
+
+```
+Achado registrado: <raiz-de-specs>/<ts>-<slug>/spec.md (fluxo: pendente)
+Retomando: <o ponto exato onde a etapa chamadora parou>
+```
+
+Volte para a etapa chamadora, no ponto exato onde ela parou. **Nunca** mude de etapa, nunca corrija o achado, nunca transforme o achado em tarefa do fluxo atual.
+
 ## Restricoes
 
-- Nao crie branch, nao altere codigo de aplicacao, nao commite nada nesta etapa. O `spec.md` fica untracked ate o `k-plan`.
+- Em modo normal: nao crie branch, nao altere codigo de aplicacao, nao commite nada. O `spec.md` fica untracked ate o `k-plan`.
+- Em modo desvio: nao investigue, nao entreviste, nao toque na `main` e nao troque de branch. Grave o stub, commite via `k-commit` e devolva.
 - Teste descartavel de reproducao nao entra em commit. Apague depois de colar a linha decisiva.
 - Nao proponha solucao tecnica mesmo que o usuario peca — registre a preferencia dele em Premissas e trate no `k-plan`.
 - Nao crie spec de "cheiro" de codigo sem comportamento errado provado quando o tipo for `bug`. Codigo feio que funciona e `refactor`, nao `bug`.
+- Achado fora do escopo do trabalho em discussao, encontrado na investigacao da etapa 3, vai para o **modo desvio** — nunca vira secao extra desta spec, nem pergunta da entrevista.
