@@ -1,6 +1,6 @@
 ---
 name: k-execute
-description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes do projeto, commita (via k-commit) e marca a tarefa como concluida. Na ultima tarefa roda a suite completa e pergunta se quer subir agora; se sim, delega ao k-commit o push, a revisao, o PR e o merge. Nunca roda git/gh diretamente. Use depois de /k-task.
+description: Etapa final do fluxo de trabalho. Executa UMA tarefa pendente por invocacao, delegando para a skill tatica indicada no frontmatter, roda lint e testes do projeto, commita (via k-commit) e marca a tarefa como concluida. Achado fora do escopo vira stub via k-spec modo desvio, sem sair da tarefa. Na ultima tarefa roda a suite completa, marca o spec.md como fluxo concluido e pergunta se quer subir agora; se sim, delega ao k-commit o push, a revisao, o PR e o merge. Nunca roda git/gh diretamente. Use depois de /k-task.
 ---
 
 # k-execute
@@ -30,12 +30,19 @@ Se o glob achar mais de um diretorio, ou a branch nao tiver slug reconhecivel, *
 
 Se estiver numa branch protegida do projeto (ex.: `main`), **pare** — a branch e criada pelo `k-plan`.
 
+Leia o frontmatter do `spec.md` antes de escolher tarefa:
+
+- `fluxo: pendente` — e um stub, ainda sem contrato de comportamento. **Pare** e mande rodar `/k-spec <slug>`.
+- `depende_de: <slug>` presente — este fluxo ficou parado esperando outro (ver "Achado fora do escopo"). Cheque o `fluxo:` da spec apontada:
+  - `concluido` ou `descartado`: a dependencia caiu. Remova o campo `depende_de:`, ache a tarefa parada por ela (`grep -l "motivo: bloqueada por <slug>" tasks/*.md`), devolva-a para `status: pendente` com `motivo:` vazio, e siga.
+  - `pendente` ou `ativo`: **pare** e mostre o que falta — o fluxo do qual este depende ainda nao entrou.
+
 ### 2. Escolher a tarefa
 
 Liste `tasks/*.md` em ordem numerica e pegue a **primeira** com `status: pendente`.
 
 - Se houver alguma `em-andamento`, ela e a escolhida — a execucao anterior foi interrompida. Verifique o estado do working tree antes de continuar.
-- Se houver alguma `bloqueada` antes da primeira `pendente`, **pare** e mostre o motivo registrado. Nao pule tarefa bloqueada.
+- Se houver alguma `bloqueada` antes da primeira `pendente`, **pare** e mostre o `motivo` do frontmatter dela. Nao pule tarefa bloqueada.
 - Se nao houver nenhuma pendente, siga para "Encerramento".
 
 Marque `status: em-andamento` antes de comecar.
@@ -55,7 +62,9 @@ Obrigatorio antes do commit. Extraia o comando de lint e de teste da documentaca
 
 Rode **apenas as camadas de teste afetadas** pela tarefa — a tarefa e vertical e pode tocar mais de uma. Camadas que dependem de infraestrutura externa (ex.: integracao, E2E) exigem o ambiente correspondente de pe.
 
-**Nunca commite com teste vermelho.** Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha, **pare**: marque `status: bloqueada`, registre no corpo da tarefa a linha decisiva da saida, o diagnostico e **quais ciclos ficaram verdes**, e devolva ao usuario. Nao commite.
+**Nunca commite com teste vermelho.** Se falhar: corrija e rode de novo, no maximo **2 tentativas**. Na terceira falha, **pare**: marque `status: bloqueada`, preencha `motivo:` com uma linha, registre no corpo da tarefa a linha decisiva da saida, o diagnostico e **quais ciclos ficaram verdes**, e devolva ao usuario. Nao commite.
+
+Antes de dar a falha por perdida, verifique se ela vem de um problema **fora do escopo desta spec**. Se vier, siga "Achado fora do escopo" — o caminho bloqueante.
 
 Consequencia esperada: o trabalho parcial (teste e implementacao incompletos) fica **no working tree, nao comitado**. E o preco de nunca ter testsuite vermelha no historico. Diga isso ao usuario ao devolver, para ele saber onde o codigo esta.
 
@@ -84,13 +93,30 @@ Restam <k> tarefas. Proximo passo: /k-execute
 
 ## Achado fora do escopo
 
-Bug ou problema descoberto no caminho que **nao** faz parte da spec atual:
+Bug ou pendencia descoberta no caminho que **nao** faz parte da spec atual. Primeiro classifique, pela evidencia do gate da etapa 4.
 
-1. Acrescente ao `spec.md` da spec corrente, no fim, uma secao `## Achados fora do escopo` com um item por achado: `arquivo:linha`, condicao de entrada e comportamento errado.
+### Nao bloqueante
+
+A tarefa em andamento passa no gate apesar do achado.
+
+1. Chame `k-spec` no **modo desvio** com o achado. Ele grava o stub (`fluxo: pendente`), commita via `k-commit` e devolve o controle.
 2. **Nao corrija.** Nao vira tarefa, nao vira commit carona.
-3. Continue a tarefa em andamento.
+3. Continue a tarefa em andamento, **no ponto exato onde parou**.
 
-No encerramento, liste os achados e pergunte se o usuario quer rodar `/k-spec` para cada um.
+### Bloqueante
+
+O gate falha **por causa** do achado, nao por erro da propria tarefa.
+
+1. Chame `k-spec` no modo desvio do mesmo jeito — o stub e gravado antes de qualquer decisao.
+2. Marque a tarefa atual `status: bloqueada`, com `motivo: bloqueada por <slug-do-stub>`.
+3. **Pare e apresente as duas saidas ao usuario** (`AskUserQuestion`):
+
+   - **Absorver no escopo atual** — o achado passa a fazer parte deste fluxo. Volte ao `/k-plan` para registrar a decisao e ao `/k-task` para gerar a tarefa; o stub vira `fluxo: descartado`, com `## Por que foi descartado` apontando o fluxo que o absorveu.
+   - **Inverter a prioridade** — este fluxo fica parado. Grave `depende_de: <slug-do-stub>` no frontmatter do `spec.md` deste fluxo e pare aqui. O trabalho no stub comeca em outra janela, por `/k-spec <slug>`.
+
+**Nao decida sozinho qual das duas.** Alargar o escopo do trabalho e decisao do usuario.
+
+Achado que **nao** fez o gate falhar e que mesmo assim o usuario considere bloqueante nao e detectavel aqui: ele vira stub pelo caminho nao bloqueante, e a decisao acontece na conversa.
 
 ## Encerramento
 
@@ -102,14 +128,18 @@ Quando nao restar tarefa `pendente` nem `em-andamento`:
 
 Falhou: pare e reporte. Nao chame o `k-commit` com suite vermelha.
 
-2. **Perguntar se e hora de subir**: todas as tarefas ja estao comitadas localmente (uma por uma, via `k-commit` modo 2b). Pergunte ao usuario: "quer subir agora (push + revisao + PR + merge, via `k-commit`) ou parar aqui?"
+2. **Marcar o fluxo como concluido**: grave `fluxo: concluido` no frontmatter do `spec.md`. Aqui `concluido` significa **todas as tarefas fechadas e suite completa verde** — nao "mergeado". Este e o ultimo ponto em que da pra escrever dentro da historia do proprio fluxo: depois do merge a branch ja foi deletada, e marcar exigiria commit direto na `main`.
+
+Commite so esse arquivo, via `k-commit` modo 2b, mensagem `docs(spec): concluir <titulo>`.
+
+3. **Perguntar se e hora de subir**: todas as tarefas ja estao comitadas localmente (uma por uma, via `k-commit` modo 2b). Pergunte ao usuario: "quer subir agora (push + revisao + PR + merge, via `k-commit`) ou parar aqui?"
 
 - Se nao: pare. As tarefas ficam comitadas localmente, nada e pushado. Nao ha proxima etapa `k-*` pra sugerir — a decisao de subir fica pra depois (manual, ou chamando `/k-execute` de novo).
 - Se sim: continue para os passos seguintes.
 
-3. **Perguntar o alvo do PR**, sem sugerir um default fixo — depende do fluxo de branches do projeto. Espere a resposta antes de abrir.
+4. **Perguntar o alvo do PR**, sem sugerir um default fixo — depende do fluxo de branches do projeto. Espere a resposta antes de abrir.
 
-4. **Montar o titulo e o corpo do PR** a partir do `spec.md` e do `plan.md` — esse conteudo de negocio e responsabilidade do `k-execute`, nao do `k-commit`.
+5. **Montar o titulo e o corpo do PR** a partir do `spec.md` e do `plan.md` — esse conteudo de negocio e responsabilidade do `k-execute`, nao do `k-commit`.
 
 Branch `feat/`, `refactor/`, `chore/`, `docs/`:
 
@@ -157,13 +187,20 @@ Spec: `<raiz-de-specs>/<ts>-<slug>/`
 <testes manuais, vindos do plan.md>
 ```
 
-5. **Chamar o `k-commit`** no **modo 2c (ciclo de shipping)**, passando: branch atual, alvo escolhido (passo 3) e o titulo/corpo montados (passo 4, template acima). O `k-commit` executa, nessa ordem: revisao automatizada -> push unico -> abertura do PR (imprimindo a URL) -> pergunta de merge, so se o alvo for uma branch protegida do projeto (ex.: `main`) -> limpeza da branch se aprovado. Sem `gh` disponivel, o `k-commit` monta o corpo com o conteudo recebido e instrui a abertura manual.
+6. **Chamar o `k-commit`** no **modo 2c (ciclo de shipping)**, passando: branch atual, alvo escolhido (passo 4) e o titulo/corpo montados (passo 5, template acima). O `k-commit` executa, nessa ordem: revisao automatizada -> push unico -> abertura do PR (imprimindo a URL) -> pergunta de merge, so se o alvo for uma branch protegida do projeto (ex.: `main`) -> limpeza da branch se aprovado. Sem `gh` disponivel, o `k-commit` monta o corpo com o conteudo recebido e instrui a abertura manual.
 
-6. Se houver achados fora do escopo registrados durante as tarefas, liste-os e pergunte se o usuario quer rodar `/k-spec` para cada um. Isso e paralelo ao passo 5 e nao depende dele.
+7. Se este fluxo gerou stubs de desvio, liste-os:
+
+```bash
+grep -rl "^origem_spec: <slug>" <raiz-de-specs>/
+```
+
+Diga que eles entram na fila do `/k-spec` **quando este PR mergear**. Nao ofereca elabora-los agora: a spec do desvio deve ser escrita contra o codigo ja atualizado. Isso e paralelo ao passo 6 e nao depende dele.
 
 ## Restricoes
 
-- Nunca rode `git`/`gh` diretamente para commit, branch, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 5 do Encerramento).
+- Nunca rode `git`/`gh` diretamente para commit, branch, push, PR, CI ou merge — sempre delegue ao `k-commit` (etapa "Commitar" e passo 6 do Encerramento).
+- Nao corrija achado fora do escopo, nem transforme achado em tarefa deste fluxo por conta propria. Absorver escopo e decisao do usuario.
 - Nao pule o gate de teste "porque a mudanca e pequena".
 - Nao commite com teste vermelho, em hipotese nenhuma. Vermelho so existe dentro da execucao da tarefa, entre escrever o teste e implementar.
 - Nao execute tarefa que nao existe como arquivo em `tasks/`. Se surgir trabalho novo, volte ao `/k-task`.
