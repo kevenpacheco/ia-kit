@@ -29,7 +29,7 @@ Converter a decisao tecnica do plano em um roteiro executavel por um agente que 
 
 Leia `spec.md` e `plan.md` inteiros. O `tipo` da spec e a `Escolhida` do plano governam a quebra.
 
-Se nao houver `plan.md`, pare e mande rodar `/k-plan` antes.
+Se nao houver `plan.md`, ou se o `spec.md` estiver com `fluxo: pendente`, pare e mande rodar `/k-plan` (ou `/k-spec`, no caso do stub) antes.
 
 Confirme que voce esta na branch da spec. Se estiver numa branch protegida do projeto (ex.: `main`), **pare** — a branch e criada pelo `k-plan`.
 
@@ -72,6 +72,7 @@ numero: 1
 titulo: Crop preserva a proporcao original
 tipo: fix
 status: pendente
+motivo:
 skill: <skill tatica da implementacao>
 arquivos:
   - caminho/relativo/do/arquivo.ext
@@ -86,6 +87,7 @@ commit:
 | `titulo` | frase curta. Em tarefa de comportamento, nomeia o comportamento ("Crop preserva a proporcao original"); nas demais, imperativa ("Atualizar doc de banners") |
 | `tipo` | tipo de Conventional Commit desta tarefa: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`. Comportamento novo ou corrigido e `feat`/`fix` — o teste vai no mesmo commit. Use `test` so quando a tarefa adiciona teste **sem** mudar comportamento (caracterizar legado, cobrir buraco existente) |
 | `status` | `pendente` \| `em-andamento` \| `concluida` \| `bloqueada` — sempre nasce `pendente` |
+| `motivo` | vazio; o `k-execute` preenche com uma linha ao marcar `bloqueada` (falha no gate, ou `bloqueada por <slug-do-stub>`). E o que o `k-execute` mostra ao encontrar tarefa bloqueada |
 | `skill` | skill tatica que executa (ver etapa 4). Uma so, referente a natureza da **implementacao**. Vazio se nenhuma se aplica |
 | `arquivos` | lista dos **arquivos exatos** que a tarefa pode tocar, **incluindo os arquivos de teste** |
 | `commit` | vazio; o `k-execute` preenche com o SHA ao concluir |
@@ -172,6 +174,7 @@ O caminho em `Doc` e relativo a raiz do repositorio.
 - Nao tome decisao tecnica que o plano nao tomou. Se faltar decisao, volte ao `/k-plan`.
 - Nunca rode `git` diretamente para commit, push, PR ou merge — sempre delegue ao `k-commit` (ver etapa 6).
 - Nao crie tarefa que exija investigacao — o executor roda com contexto minimo e nao vai pesquisar.
+- Achado fora do escopo notado durante a quebra vira stub via `k-spec` no **modo desvio**, nunca tarefa deste fluxo. Depois de registrar, volte para a etapa 2 (quebrar em tarefas), retomando da tarefa que voce estava montando quando o achado apareceu.
 - **Nunca separe teste e implementacao do mesmo comportamento em tarefas diferentes.** Isso comita testsuite vermelha, que e exatamente o que este fluxo evita.
 - Nao agrupe comportamentos diferentes numa tarefa so para reduzir o numero de arquivos.
 - Nao proponha recursos de linguagem/versao alem do que o projeto ja usa nas instrucoes — respeite as convencoes documentadas (`CLAUDE.md`).

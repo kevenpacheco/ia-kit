@@ -36,6 +36,7 @@ numero: 1
 titulo: Crop preserva a proporcao original
 tipo: fix
 status: pendente
+motivo:
 skill: <skill tatica do projeto, se houver uma aplicavel>
 arquivos:
   - caminho/relativo/do/arquivo.ext
@@ -51,6 +52,7 @@ commit:
 ```
 
 `status`: `pendente` → `em-andamento` → `concluida`, ou `bloqueada`.
+`motivo`: preenchido pelo `k-execute` ao bloquear (falha no gate, ou `bloqueada por <slug-do-stub>`). E o que ele te mostra ao reencontrar a tarefa.
 `commit`: preenchido pelo `k-execute` com o SHA.
 `tipo`: comportamento novo/corrigido e `feat`/`fix` — o teste vai no mesmo commit. `test` so para teste sem mudanca de comportamento (caracterizar legado, cobrir buraco existente).
 `## Ciclos TDD`: um item por ciclo red→green — nome do teste, comportamento esperado, arquivo de teste. Omitido em tarefa sem teste novo.
@@ -66,6 +68,7 @@ Preenchido dinamicamente: a skill olha `.claude/skills/` do projeto e escolhe **
 - Nao cria tarefa de documentacao se o plano disse `Nenhuma`.
 - Nao separa teste e implementacao do mesmo comportamento em tarefas diferentes.
 - Nao pede permissao pra gravar os arquivos.
+- Nao transforma achado fora do escopo em tarefa. Ele vira stub via `k-spec` modo desvio, e ela retoma a quebra na tarefa que estava montando.
 
 ## Saida
 
