@@ -23,7 +23,7 @@ Sem argumento, resolve pela branch atual.
 4. Altera **apenas** os arquivos listados em `arquivos`, rodando o ciclo TDD de cada item de `## Ciclos TDD`: teste falha → implementa ate passar.
 5. Gate: lint + as camadas de teste afetadas, com os comandos do projeto. 2 tentativas.
 6. Commita via skill `k-commit` (sem push).
-7. Marca `status: concluida` e preenche `commit: <SHA>`.
+7. Marca `status: concluida`.
 
 ## Quando falha
 

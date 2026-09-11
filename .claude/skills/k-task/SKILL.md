@@ -77,7 +77,6 @@ skill: <skill tatica da implementacao>
 arquivos:
   - caminho/relativo/do/arquivo.ext
   - caminho/relativo/do/teste.ext
-commit:
 ---
 ```
 
@@ -90,7 +89,6 @@ commit:
 | `motivo` | vazio; o `k-execute` preenche com uma linha ao marcar `bloqueada` (falha no gate, ou `bloqueada por <slug-do-stub>`). E o que o `k-execute` mostra ao encontrar tarefa bloqueada |
 | `skill` | skill tatica que executa (ver etapa 4). Uma so, referente a natureza da **implementacao**. Vazio se nenhuma se aplica |
 | `arquivos` | lista dos **arquivos exatos** que a tarefa pode tocar, **incluindo os arquivos de teste** |
-| `commit` | vazio; o `k-execute` preenche com o SHA ao concluir |
 
 Corpo:
 
