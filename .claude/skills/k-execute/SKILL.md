@@ -79,7 +79,6 @@ Adicione somente os arquivos da tarefa, mais o arquivo da propria tarefa e os `d
 No frontmatter do arquivo da tarefa:
 
 - `status: concluida`
-- `commit: <SHA curto>`
 
 Isso entra no mesmo commit da tarefa.
 

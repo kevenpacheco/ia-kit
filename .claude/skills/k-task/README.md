@@ -41,7 +41,6 @@ skill: <skill tatica do projeto, se houver uma aplicavel>
 arquivos:
   - caminho/relativo/do/arquivo.ext
   - caminho/relativo/do/teste.ext
-commit:
 ---
 
 ## O que fazer
@@ -53,7 +52,6 @@ commit:
 
 `status`: `pendente` → `em-andamento` → `concluida`, ou `bloqueada`.
 `motivo`: preenchido pelo `k-execute` ao bloquear (falha no gate, ou `bloqueada por <slug-do-stub>`). E o que ele te mostra ao reencontrar a tarefa.
-`commit`: preenchido pelo `k-execute` com o SHA.
 `tipo`: comportamento novo/corrigido e `feat`/`fix` — o teste vai no mesmo commit. `test` so para teste sem mudanca de comportamento (caracterizar legado, cobrir buraco existente).
 `## Ciclos TDD`: um item por ciclo red→green — nome do teste, comportamento esperado, arquivo de teste. Omitido em tarefa sem teste novo.
 
