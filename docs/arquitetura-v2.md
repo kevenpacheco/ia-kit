@@ -49,8 +49,18 @@ que **não** muda:
 
 ```
 nucleo/        invariável entre projetos    -> prefixo estável, cacheável
-adaptadores/   detecção de convenção        -> resolvido em runtime
+adaptadores/   shim por ferramenta de IA    -> gerado na instalação
 taticas/       skills do próprio projeto    -> vivem no repo do projeto
+```
+
+No repositório do kit, `nucleo/` e `adaptadores/` são a fonte. No projeto que instala, o
+núcleo vira `.ia-kit/` e os adaptadores viram os arquivos que cada ferramenta espera:
+
+```
+repositório do kit            projeto que instala
+nucleo/         ---------->   .ia-kit/          núcleo + contrato.yml
+adaptadores/    ---------->   .claude/skills/   shim (Claude Code)
+                              AGENTS.md         bloco (demais ferramentas)
 ```
 
 **Regra de fronteira:** se muda de projeto para projeto, não entra no núcleo. Entra como
@@ -63,24 +73,20 @@ instalar em repositório novo sem editar o núcleo.
 
 ### D2 — Contrato do projeto em vez de prosa
 
-Cada projeto declara suas capacidades em um arquivo curto:
-
-```yaml
-raiz_specs: docs/specs
-comandos:
-  lint: <cmd>
-  teste_unit: <cmd>
-  teste_integracao: <cmd>
-  suite: <cmd>
-  seguranca: <cmd>
-branch_protegida: [main]
-```
+Cada projeto declara suas capacidades em `.ia-kit/contrato.yml`: stack, comandos de lint,
+teste, suite e segurança, convenções de git, modo de execução, teto de tokens e escolha de
+modelos. Esquema completo em `nucleo/referencias/contrato.md`.
 
 **Motivo:** prosa do tipo "use o comando de teste do projeto" é reinterpretada a cada
 invocação e gasta leitura. Campo é lido uma vez.
 
 **Implicação:** skill que precisa rodar algo lê o contrato. Skill que não acha o campo para e
 pergunta, em vez de adivinhar comando.
+
+**Validação:** o `k-init` executa cada comando antes de gravar. Comando que não roda fica
+fora. Contrato com comando quebrado é pior que campo vazio, porque a skill confia nele e
+falha no meio do fluxo. Comando que roda e sai diferente de zero conta como válido — o
+comando existe, o projeto é que está sujo.
 
 ### D3 — Teto de contexto por skill, com divulgação progressiva
 
@@ -203,10 +209,11 @@ o agente decide sozinho.
 
 ### D12 — Instalação e versionamento
 
-- Núcleo com versão semântica. Projeto fixa a versão que usa.
-- Instalação por skill `k-init`: copia o núcleo e gera o contrato do projeto por entrevista
-  curta.
-- Mudança de contrato entre versões vem documentada com passo de migração.
+- Núcleo com versão semântica, em `nucleo/VERSAO`. O contrato grava a versão que gerou ele.
+- Instalar = copiar `nucleo/` para `.ia-kit/` e rodar `k-init`, que detecta, valida, entrevista,
+  grava o contrato e gera os shims.
+- `kit_versao` diferente do núcleo instalado: `k-init` roda em modo atualização, com diff campo
+  a campo e as respostas anteriores preservadas.
 
 **Motivo:** sem instalação e atualização definidas, cada projeto vira um fork silencioso e o
 kit deixa de ser kit.
@@ -233,13 +240,36 @@ commit. Não servem como métrica principal do kit.
 
 **Regra:** mudança no núcleo só entra se a suite de referência não piorar.
 
+### D14 — Agnóstico de ferramenta
+
+O kit não pode depender do Claude Code. Núcleo e contrato vivem em `.ia-kit/`, diretório
+neutro. Cada ferramenta de IA recebe um **shim**: arquivo no formato que ela espera, cujo
+corpo aponta para o arquivo de fluxo no núcleo.
+
+| Ferramenta | Shim |
+|---|---|
+| Claude Code | `.claude/skills/k-*/SKILL.md` |
+| Codex, Copilot e afins | bloco delimitado em `AGENTS.md` |
+| Cursor | `.cursor/rules/*` |
+
+**Regra:** shim é ponteiro, nunca cópia. Regra duplicada em adaptador sai de sincronia na
+primeira atualização do núcleo, e aí cada ferramenta passa a seguir uma versão diferente do
+fluxo.
+
+**Motivo:** kit preso a `.claude/` morre se o time trocar de ferramenta, e força os artefatos
+do próprio kit — contrato, métricas do D13, baseline — a morarem dentro da pasta de
+configuração de outra ferramenta.
+
+**Custo aceito:** uma leitura de indireção por invocação. O shim é curto e fica antes do
+conteúdo volátil, então continua dentro do prefixo cacheável do D4.
+
 ---
 
 ## 4. Ordem de construção
 
 | # | Entrega | Destrava |
 |---|---|---|
-| 1 | Contrato do projeto + `k-init` (D1, D2, D12) | Portabilidade e cache |
+| 1 | Contrato do projeto + `k-init` (D1, D2, D12, D14) | Portabilidade e cache |
 | 2 | Divisão de `SKILL.md` em núcleo + referências (D3, D4) | Custo por invocação |
 | 3 | Gate de segurança no `k-execute` (D10) | Risco não coberto |
 | 4 | Revogação da regra de subagentes (D6) | Custo de token |
