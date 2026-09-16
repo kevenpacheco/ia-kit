@@ -42,6 +42,18 @@ execucao:
   modo_padrao: evolucao            # greenfield | evolucao | legado
   teto_tokens_tarefa: 300000       # estourou: para e devolve ao humano
   tentativas_gate: 2
+  limiar_promocao:                 # acima disso, k-commit sugere abrir um fluxo
+    arquivos: 5
+    linhas: 150
+
+commit:
+  idioma: pt-BR
+  atribuicao_ia: false             # true libera rodapé de IA na mensagem
+
+shipping:
+  automatico: false                # true: push + PR ao encerrar o fluxo, sem perguntar
+  pr_draft_quando: [achado_aberto, modo_legado]
+  merge: manual                    # nunca automático
 
 modelos:
   forte: <id ou alias>             # k-plan, k-execute
@@ -69,6 +81,12 @@ modelos:
 | `git.prefixos` | sim | `k-plan` | usa o padrão da tabela |
 | `execucao.modo_padrao` | sim | `k-plan` | assume `evolucao` |
 | `execucao.teto_tokens_tarefa` | sim | `k-execute` | sem teto, avisa |
+| `execucao.limiar_promocao` | sim | `k-commit` | não sugere promoção |
+| `commit.idioma` | sim | `k-commit` | assume `pt-BR` |
+| `commit.atribuicao_ia` | sim | `k-commit` | assume `false` |
+| `shipping.automatico` | sim | `k-execute` | assume `false` — pergunta antes de subir |
+| `shipping.pr_draft_quando` | sim | `k-commit` | PR nunca sai como draft |
+| `shipping.merge` | sim | `k-commit` | assume `manual` |
 | `modelos.forte` / `modelos.barato` | não | roteamento | usa o modelo da sessão |
 
 ### `comandos.seguranca`

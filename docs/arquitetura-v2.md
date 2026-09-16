@@ -176,7 +176,20 @@ de 2 a 30 vezes mais quando aparecem depois de 800 mil tokens de contexto benign
 5. review humano    (lógica de negócio e arquitetura)
 ```
 
-Passos 1 a 3 rodam dentro do `k-execute`, antes do commit. Passos 4 e 5 rodam no PR.
+Passos 1 a 3 rodam dentro do `k-commit`, antes de gravar o commit. Passos 4 e 5 rodam no PR.
+
+**O gate pertence ao commit, não ao fluxo.** No v1 ele vivia no `k-execute`, então mudança
+manual, ajuste pequeno e trabalho da IA fora do ciclo entravam no repositório sem lint, sem
+teste e sem verificação de segurança — exatamente onde ninguém está olhando. No v2 o
+`k-commit` é a porta única de git que muda estado, e o `k-execute` delega a ele.
+
+O gate se dimensiona pelo diff: commit avulso roda lint, testes dos arquivos tocados e
+segurança sobre o diff; a suite completa fica no encerramento do fluxo. Varredura de
+segurança no diff leva segundos — é o que permite rodar sempre sem que o time desligue o
+gate.
+
+**Contra o desvio de processo:** acima de `execucao.limiar_promocao`, o `k-commit` sugere
+abrir um fluxo. Sugere, não bloqueia. Processo que atrapalha é processo contornado.
 
 **Sobre o passo 3.** O gate do v1 era lint mais testes. Isso não cobre o risco medido:
 modelos geram código que compila em praticamente 100% dos casos, mas cerca de 44% das tarefas
@@ -265,14 +278,45 @@ conteúdo volátil, então continua dentro do prefixo cacheável do D4.
 
 ---
 
+### D15 — O PR é o ponto de revisão humana
+
+O humano entra uma vez, no fim, com o trabalho inteiro na frente — não a cada etapa do
+fluxo. Ao encerrar, a ferramenta faz push e abre o PR; o revisor comenta; `k-revisao` lê os
+comentários, classifica e transforma o que for mudança pedida em tarefas; `k-execute`
+corrige; commits novos atualizam o PR.
+
+**Por que o PR e não o chat:** aprovação em conversa não deixa rastro. Comentário em PR é
+assíncrono, auditável e é onde o revisor já trabalha. E concentra o humano exatamente onde a
+IA é fraca — lógica de negócio e arquitetura —, em vez de gastá-lo confirmando etapas.
+
+**Autorização durável, não decisão da ferramenta.** Push e PR são ação externa: notificam
+pessoas, disparam CI. Ficam atrás de `shipping.automatico`, padrão `false`, que o projeto
+liga uma vez no contrato.
+
+**Guarda-corpos, todos obrigatórios:**
+
+| Regra | Motivo |
+|---|---|
+| Um PR por fluxo, nunca por tarefa | É o que impede a fila de review de estourar |
+| Só com suite verde e tarefas fechadas | PR quebrado consome revisor à toa |
+| Draft quando há achado aberto ou modo legado | Draft não convoca o revisor para trabalho com ponta solta |
+| Correção por commit novo, nunca force-push | Force-push deixa comentário órfão e o revisor perde o rastro |
+| Merge sempre humano | Volume de PR merged sobe sem mover a entrega; a aprovação é o que liga as duas coisas |
+| Teto de três rodadas por PR | Acima disso o problema é de escopo, não de correção — e o agente não se cansa de aceitar pedido |
+
+**Como saber se deu errado:** as métricas do D13 já cobrem — latência do primeiro review e
+rodadas por PR. Se a latência subir depois de ligar o automático, o kit está produzindo
+ruído, não entrega, e `shipping.automatico` volta para `false`.
+
 ## 4. Ordem de construção
 
 | # | Entrega | Destrava |
 |---|---|---|
 | 1 | Contrato do projeto + `k-init` (D1, D2, D12, D14) | Portabilidade e cache |
 | 2 | Divisão de `SKILL.md` em núcleo + referências (D3, D4) | Custo por invocação |
-| 3 | Gate de segurança no `k-execute` (D10) | Risco não coberto |
-| 4 | Revogação da regra de subagentes (D6) | Custo de token |
+| 3 | Gate no `k-commit`, porta única de git (D10) | Risco não coberto |
+| 4 | `k-revisao`: comentário de PR vira tarefa (D15) | Revisão humana no lugar certo |
+| 5 | Revogação da regra de subagentes (D6) | Custo de token |
 | 5 | Roteamento de modelo + orçamento (D7, D8) | Custo por tarefa |
 | 6 | Modos por tipo de trabalho (D11) | Ganho onde rende |
 | 7 | Suite de referência + métricas (D13) | Prova de que funciona |
