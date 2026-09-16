@@ -52,6 +52,7 @@ commit:
 
 shipping:
   automatico: false                # true: push + PR ao encerrar o fluxo, sem perguntar
+  alvo_pr: main                    # base do PR; vazio faz perguntar a cada vez
   pr_draft_quando: [achado_aberto, modo_legado]
   merge: manual                    # nunca automático
 
@@ -85,6 +86,7 @@ modelos:
 | `commit.idioma` | sim | `k-commit` | assume `pt-BR` |
 | `commit.atribuicao_ia` | sim | `k-commit` | assume `false` |
 | `shipping.automatico` | sim | `k-execute` | assume `false` — pergunta antes de subir |
+| `shipping.alvo_pr` | não | `k-execute` | pergunta o alvo a cada PR |
 | `shipping.pr_draft_quando` | sim | `k-commit` | PR nunca sai como draft |
 | `shipping.merge` | sim | `k-commit` | assume `manual` |
 | `modelos.forte` / `modelos.barato` | não | roteamento | usa o modelo da sessão |
