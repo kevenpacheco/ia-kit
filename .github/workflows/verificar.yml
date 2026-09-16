@@ -10,7 +10,7 @@ jobs:
   invariantes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Verificar invariantes do kit
         run: bash ci/verificar.sh
 
@@ -21,7 +21,7 @@ jobs:
     needs: invariantes
     if: github.ref_type == 'tag'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Instalar a partir desta tag num projeto vazio
         run: |
@@ -53,7 +53,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Publicar release
         env:
           GH_TOKEN: ${{ github.token }}
