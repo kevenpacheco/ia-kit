@@ -10,7 +10,7 @@ adivinha comando, não infere convenção, não reinterpreta instrução a cada 
 ## Esquema
 
 ```yaml
-kit_versao: 2.0.0-alpha.1          # versão do núcleo que gerou este contrato
+kit_versao: 2.0.0-alpha.2          # versão do núcleo que gerou este contrato
 ferramentas: [claude-code]         # shims gerados: claude-code | agents-md | cursor
 
 projeto:
@@ -26,9 +26,12 @@ comandos:                          # vazio = skill pergunta na hora de usar
   teste_unit: <cmd>
   teste_integracao: <cmd>          # opcional
   suite: <cmd>                     # roda tudo; usado no encerramento do fluxo
-  seguranca: <cmd>                 # obrigatório para o gate D10
+  seguranca: <cmd>                 # varredura completa
+  seguranca_diff: <cmd>            # varredura incremental; {base} e {arquivos} são
+                                   # substituídos na hora. Vazio = gate cai para completa
 
 git:
+  forja: github                    # github | gitlab | bitbucket | azure | nenhuma
   branch_principal: main
   branches_protegidas: [main]
   prefixos:
@@ -40,8 +43,12 @@ git:
 
 execucao:
   modo_padrao: evolucao            # greenfield | evolucao | legado
-  teto_tokens_tarefa: 300000       # estourou: para e devolve ao humano
+  encadeamento: automatico         # automatico | manual — ver "Encadeamento"
   tentativas_gate: 2
+  limites_tarefa:                  # sinais observáveis; estourou, para e devolve
+    arquivos_lidos: 40
+    rodadas_ferramenta: 60
+    minutos: 20
   limiar_promocao:                 # acima disso, k-commit sugere abrir um fluxo
     arquivos: 5
     linhas: 150
@@ -49,6 +56,10 @@ execucao:
 commit:
   idioma: pt-BR
   atribuicao_ia: false             # true libera rodapé de IA na mensagem
+  revisao_subagente: por_limiar    # sempre | por_limiar | nunca
+  revisao_limiar:
+    arquivos: 3
+    linhas: 80
 
 shipping:
   automatico: false                # true: push + PR ao encerrar o fluxo, sem perguntar
@@ -56,7 +67,7 @@ shipping:
   pr_draft_quando: [achado_aberto, modo_legado]
   merge: manual                    # nunca automático
 
-modelos:
+modelos:                           # aplicado onde a ferramenta permite; ver "Modelos"
   forte: <id ou alias>             # k-plan, k-execute
   barato: <id ou alias>            # k-scan, sumarização, refutação, busca
 ```
@@ -76,15 +87,19 @@ modelos:
 | `comandos.teste_unit` | sim | gate 2 | gate para |
 | `comandos.teste_integracao` | não | gate 2 | camada ignorada |
 | `comandos.suite` | sim | encerramento | encerramento para |
-| `comandos.seguranca` | sim | gate 3 | **gate para — ver abaixo** |
+| `comandos.seguranca` | sim | gate 3 | **avisa a cada commit — ver abaixo** |
+| `comandos.seguranca_diff` | não | gate 3 | cai para varredura completa e avisa o custo |
+| `git.forja` | sim | `k-revisao`, shipping | assume `nenhuma`: PR e comentários viram passo manual |
 | `git.branch_principal` | sim | `k-spec`, `k-plan` | pergunta |
 | `git.branches_protegidas` | sim | `k-execute` | assume `[main]` e avisa |
 | `git.prefixos` | sim | `k-plan` | usa o padrão da tabela |
 | `execucao.modo_padrao` | sim | `k-plan` | assume `evolucao` |
-| `execucao.teto_tokens_tarefa` | sim | `k-execute` | sem teto, avisa |
+| `execucao.encadeamento` | sim | `k-spec`, `k-plan` | assume `automatico` |
+| `execucao.limites_tarefa` | sim | `k-execute` | sem limite, avisa uma vez |
 | `execucao.limiar_promocao` | sim | `k-commit` | não sugere promoção |
 | `commit.idioma` | sim | `k-commit` | assume `pt-BR` |
 | `commit.atribuicao_ia` | sim | `k-commit` | assume `false` |
+| `commit.revisao_subagente` | sim | `k-commit` | assume `por_limiar` |
 | `shipping.automatico` | sim | `k-execute` | assume `false` — pergunta antes de subir |
 | `shipping.alvo_pr` | não | `k-execute` | pergunta o alvo a cada PR |
 | `shipping.pr_draft_quando` | sim | `k-commit` | PR nunca sai como draft |
@@ -103,46 +118,77 @@ comandos:
   seguranca_pendente: "nenhuma ferramenta detectada em <data>"
 ```
 
-O `k-execute` então **avisa em toda invocação** até o campo ser preenchido. Ele não bloqueia
-o trabalho — bloquear o fluxo inteiro por falta de ferramenta empurraria o time a remover o
+O `k-commit` então **avisa em toda invocação** até o campo ser preenchido. Ele não bloqueia o
+trabalho — bloquear o fluxo inteiro por falta de ferramenta empurraria o time a remover o
 gate. Avisar de forma persistente mantém a dívida visível.
 
-Candidatos por stack, em ordem de preferência do detector:
+Candidatos por stack e modelos de invocação incremental: `gate.md`.
 
-| Stack | Candidatos |
+### `comandos.seguranca_diff`
+
+Campo próprio porque varredura completa leva minutos e faz o gate ser desligado, enquanto a
+incremental leva segundos e sobrevive ao uso diário. O `k-init` testa se a ferramenta
+detectada sabe operar assim antes de gravar.
+
+Placeholders substituídos na hora: `{base}` e `{arquivos}`. Vazio: o gate cai para varredura
+completa e avisa o custo.
+
+### `execucao.limites_tarefa`
+
+Sinais **observáveis** de tarefa fora de controle: arquivos lidos, rodadas de ferramenta,
+minutos. Não é contagem de token — o agente não lê o próprio consumo de forma confiável
+durante a execução, e regra que ninguém consegue cumprir ensina a ignorar regras.
+
+Estourou qualquer um: para, registra qual sinal estourou e devolve. Tarefa que estoura quase
+sempre está mal quebrada, e o sinal é mais útil como diagnóstico da quebra do que como
+controle de custo.
+
+O custo em dinheiro entra depois, no relatório de fechamento, a partir do que a ferramenta
+reportar. Retrospectivo e confiável vale mais que preditivo e inventado.
+
+### `execucao.encadeamento`
+
+| Valor | Efeito |
 |---|---|
-| JavaScript / TypeScript | `semgrep --config auto`, `npm audit --audit-level=high` |
-| Python | `semgrep --config auto`, `bandit -r <src>` |
-| Go | `gosec ./...`, `govulncheck ./...` |
-| PHP | `semgrep --config auto` |
-| Qualquer um | `gitleaks detect`, `trivy fs .` |
+| `automatico` | `k-spec` → `k-plan` → `k-task` seguem sem perguntar. As paradas que sobram são as decisões reais: entrevista da spec e escolha da opção técnica |
+| `manual` | cada etapa para no fim e informa a próxima |
+
+Campo único, lido pelas duas etapas. O modo de execução (`greenfield`/`legado`) governa
+granularidade e autonomia; **não** governa encadeamento. Misturar os dois fazia o `k-spec`
+decidir com base num modo que só o `k-plan` define.
+
+### `commit.revisao_subagente`
+
+| Valor | Quando dispara |
+|---|---|
+| `sempre` | todo diff de código |
+| `por_limiar` | diff de código acima de `commit.revisao_limiar` |
+| `nunca` | desligada |
+
+Padrão `por_limiar`. Revisão por subagente é o segundo maior consumo do kit, depois do
+`k-scan`, e num diff de três linhas ela quase sempre repete o que lint e testes já disseram.
+O limiar existe para gastar o subagente onde ele tem chance de achar algo que o gate não
+acha.
+
+### `modelos`
+
+Aplicado onde a ferramenta permite: subagente costuma aceitar modelo próprio, a etapa
+principal nem sempre. Onde não dá para impor, vale como recomendação registrada — e a
+economia só é afirmada depois de aparecer no baseline.
 
 ---
 
-## Validação
+## Validação, precedência e migração
 
-O `k-init` **executa** cada comando antes de gravar. Comando que não roda não entra no
-contrato — contrato com comando quebrado é pior que campo vazio, porque a skill confia nele
-e falha no meio do fluxo.
+O `k-init` **executa** cada comando antes de gravar. Comando que não roda não entra: contrato
+com comando quebrado é pior que campo vazio, porque a skill confia nele e falha no meio do
+fluxo. Comando que roda e sai diferente de zero é válido — o projeto é que está sujo, e o
+`k-init` reporta sem corrigir.
 
-- Comando falhou por não existir: campo fica vazio, com o motivo registrado.
-- Comando falhou por teste vermelho ou lint sujo: **é considerado válido** (ele roda; o
-  projeto é que está sujo). O `k-init` reporta o estado sem tentar corrigir.
+Precedência: contrato → convenção documentada do projeto → padrão do núcleo. Nada abaixo
+sobrescreve o que está acima.
 
----
-
-## Precedência
-
-1. Contrato (`.ia-kit/contrato.yml`)
-2. Convenção documentada do projeto
-3. Padrão do núcleo
-
-Nada abaixo sobrescreve o que está acima.
-
----
-
-## Migração entre versões
-
-`kit_versao` diferente do núcleo instalado: o `k-init` roda em modo atualização — mostra
-campo por campo o que muda, pede confirmação, preserva o que o projeto já respondeu. Nunca
-sobrescreve contrato existente sem diff na tela.
+`kit_versao` diferente do núcleo instalado: modo atualização, com diff campo a campo,
+confirmação, e as respostas anteriores preservadas. O esquema legível por máquina está em
+`.ia-kit/esquema.yml`, e é contra ele que o `k-init` confere campo órfão, campo ausente e
+campo removido.

@@ -111,8 +111,9 @@ Branch <prefixo>/<slug> criada.   Modo: <modo_execucao>
 Próximo passo: /k-task
 ```
 
-Encadeie direto para o `k-task`, sem perguntar: a quebra em tarefas não toma decisão nova, e
-roda em invocação separada para não herdar o contexto de investigação desta etapa.
+`execucao.encadeamento: automatico`: siga direto para o `k-task`. A quebra em tarefas não
+toma decisão nova, e roda em invocação separada só para não herdar o contexto de
+investigação desta etapa. `manual`: pare aqui.
 
 ## Nunca
 

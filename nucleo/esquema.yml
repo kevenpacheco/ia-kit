@@ -1,0 +1,69 @@
+# Esquema do contrato — legível por máquina.
+# O k-init compara `.ia-kit/contrato.yml` com este arquivo e reporta campo órfão
+# (existe no contrato, não existe aqui) e campo ausente (obrigatório aqui, faltando lá).
+# Prosa e justificativa de cada campo ficam em referencias/contrato.md.
+
+versao: 2.0.0-alpha.2
+
+campos:
+  kit_versao:          {obrigatorio: true,  tipo: string,  usado_por: [k-init]}
+  ferramentas:         {obrigatorio: true,  tipo: lista,   usado_por: [k-init],
+                        valores: [claude-code, agents-md, cursor]}
+
+  projeto.nome:        {obrigatorio: true,  tipo: string,  usado_por: [k-commit, k-execute]}
+  projeto.stack:       {obrigatorio: true,  tipo: string,  usado_por: [k-plan, k-task]}
+
+  specs.raiz:          {obrigatorio: true,  tipo: caminho, usado_por: [k-spec, k-plan, k-task, k-execute, k-scan]}
+
+  comandos.lint:           {obrigatorio: true,  tipo: comando, usado_por: [k-commit]}
+  comandos.formato:        {obrigatorio: false, tipo: comando, usado_por: [k-commit]}
+  comandos.teste_unit:     {obrigatorio: true,  tipo: comando, usado_por: [k-commit]}
+  comandos.teste_integracao: {obrigatorio: false, tipo: comando, usado_por: [k-commit]}
+  comandos.suite:          {obrigatorio: true,  tipo: comando, usado_por: [k-execute]}
+  comandos.seguranca:      {obrigatorio: true,  tipo: comando, usado_por: [k-commit],
+                            vazio_permitido: true, vazio_exige: seguranca_pendente}
+  comandos.seguranca_diff: {obrigatorio: false, tipo: comando, usado_por: [k-commit],
+                            placeholders: ["{base}", "{arquivos}"]}
+  comandos.seguranca_pendente: {obrigatorio: false, tipo: string, usado_por: [k-commit]}
+
+  git.forja:               {obrigatorio: true,  tipo: enum,    usado_por: [k-revisao, k-commit],
+                            valores: [github, gitlab, bitbucket, azure, nenhuma]}
+  git.branch_principal:    {obrigatorio: true,  tipo: string,  usado_por: [k-spec, k-plan, k-commit]}
+  git.branches_protegidas: {obrigatorio: true,  tipo: lista,   usado_por: [k-commit, k-execute]}
+  git.prefixos:            {obrigatorio: true,  tipo: mapa,    usado_por: [k-plan, k-commit],
+                            chaves: [feature, bug, refactor, chore, docs]}
+
+  execucao.modo_padrao:    {obrigatorio: true,  tipo: enum,    usado_por: [k-plan],
+                            valores: [greenfield, evolucao, legado]}
+  execucao.encadeamento:   {obrigatorio: true,  tipo: enum,    usado_por: [k-spec, k-plan],
+                            valores: [automatico, manual]}
+  execucao.tentativas_gate: {obrigatorio: true, tipo: inteiro, usado_por: [k-commit, k-execute]}
+  execucao.limites_tarefa: {obrigatorio: true,  tipo: mapa,    usado_por: [k-execute],
+                            chaves: [arquivos_lidos, rodadas_ferramenta, minutos]}
+  execucao.limiar_promocao: {obrigatorio: true, tipo: mapa,    usado_por: [k-commit],
+                            chaves: [arquivos, linhas]}
+
+  commit.idioma:           {obrigatorio: true,  tipo: string,  usado_por: [k-commit]}
+  commit.atribuicao_ia:    {obrigatorio: true,  tipo: booleano, usado_por: [k-commit, k-init]}
+  commit.revisao_subagente: {obrigatorio: true, tipo: enum,    usado_por: [k-commit],
+                            valores: [sempre, por_limiar, nunca]}
+  commit.revisao_limiar:   {obrigatorio: false, tipo: mapa,    usado_por: [k-commit],
+                            chaves: [arquivos, linhas]}
+
+  shipping.automatico:     {obrigatorio: true,  tipo: booleano, usado_por: [k-execute]}
+  shipping.alvo_pr:        {obrigatorio: false, tipo: string,  usado_por: [k-execute]}
+  shipping.pr_draft_quando: {obrigatorio: true, tipo: lista,   usado_por: [k-commit],
+                            valores: [achado_aberto, modo_legado, suite_instavel]}
+  shipping.merge:          {obrigatorio: true,  tipo: enum,    usado_por: [k-commit],
+                            valores: [manual]}
+
+  modelos.forte:           {obrigatorio: false, tipo: string,  usado_por: [k-plan, k-execute]}
+  modelos.barato:          {obrigatorio: false, tipo: string,  usado_por: [k-scan, k-spec, k-plan]}
+
+# Campos removidos, com a versão em que saíram. O k-init avisa quando encontra
+# um deles no contrato e diz o que fazer.
+removidos:
+  execucao.teto_tokens_tarefa:
+    saiu_em: 2.0.0-alpha.2
+    motivo: consumo de token não é legível de forma confiável durante a execução
+    substituto: execucao.limites_tarefa

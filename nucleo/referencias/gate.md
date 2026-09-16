@@ -38,6 +38,35 @@ então a camada 3 não é opcional aí.
 Não no repositório inteiro. Varredura completa leva minutos e faz o gate ser desligado;
 varredura do diff leva segundos e sobrevive ao uso diário.
 
+Candidatos por stack, na ordem de preferência do detector do `k-init`:
+
+| Stack | Candidatos |
+|---|---|
+| JavaScript / TypeScript | `semgrep --config auto`, `npm audit --audit-level=high` |
+| Python | `semgrep --config auto`, `bandit -r <src>` |
+| Go | `gosec ./...`, `govulncheck ./...` |
+| PHP | `semgrep --config auto` |
+| Qualquer um | `gitleaks detect`, `trivy fs .` |
+
+Use `comandos.seguranca_diff`, substituindo `{base}` pelo commit de comparação e `{arquivos}`
+pela lista de arquivos do diff. Modelos que o `k-init` testa, por ferramenta:
+
+| Ferramenta | Invocação incremental |
+|---|---|
+| Semgrep | `semgrep --config auto --baseline-commit {base}` |
+| Bandit | `bandit -q {arquivos}` |
+| Gosec | `gosec {arquivos}` |
+| Gitleaks | `gitleaks protect --staged` |
+| Trivy | `trivy fs --scanners vuln,secret {arquivos}` |
+| npm audit | não é incremental — vale só quando o diff toca manifesto ou lockfile |
+
+Nem toda ferramenta faz isso, e algumas fazem mal. O `k-init` verifica antes de gravar; sem
+modo incremental confiável, o campo fica vazio.
+
+`comandos.seguranca_diff` vazio: o gate cai para a varredura completa e **avisa o custo em
+toda invocação**. Funciona, mas é a configuração que o time desliga primeiro — o aviso existe
+para que a queda seja uma escolha consciente, não um silêncio.
+
 Motivo de a camada existir: código gerado por IA compila em praticamente 100% dos casos,
 mas cerca de 44% das gerações introduzem uma vulnerabilidade quando não há instrução de
 segurança explícita — e essa taxa não melhorou com modelos mais novos. Instrução em prompt

@@ -47,6 +47,12 @@ de engenharia, e poluir toda mensagem com isso degrada o valor do `git log` como
 Essa regra vale mesmo quando a ferramenta em uso pede o contrário por padrão. O contrato do
 projeto tem precedência sobre o padrão da ferramenta.
 
+**Atenção:** algumas ferramentas anexam o rodapé por conta própria, fora do alcance do kit. O
+`k-init` confere isso na instalação e avisa onde desligar. Se o rodapé aparecer mesmo assim,
+remova antes de commitar — e, em commit já feito e não empurrado, reescreva a mensagem.
+
+`commit.atribuicao_ia: true` libera o rodapé. Só então ele é permitido.
+
 ## Comando
 
 HEREDOC sempre, para não quebrar a formatação de múltiplas linhas:

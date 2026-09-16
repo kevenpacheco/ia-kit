@@ -101,8 +101,8 @@ Tipo: <tipo>   Fluxo: ativo
 Próximo passo: /k-plan
 ```
 
-Modo de execução `greenfield` no contrato: encadeie direto para o `k-plan`, sem perguntar.
-Nos demais modos, pare aqui.
+`execucao.encadeamento: automatico`: siga direto para o `k-plan`, sem perguntar. `manual`:
+pare aqui.
 
 ## Nunca
 

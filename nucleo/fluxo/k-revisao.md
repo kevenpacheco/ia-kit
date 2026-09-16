@@ -11,11 +11,15 @@ Não altera código, não commita, não responde no PR por conta própria.
 
 Pela branch atual. Sem PR aberto: pare e diga que não há o que revisar.
 
-Colete, com `gh`:
+Colete, com o comando da forja (`git.forja` no contrato; tabela em
+`.ia-kit/referencias/forja.md`):
 
 - threads de review não resolvidos
 - corpo das reviews (aprovada, mudanças pedidas, comentário)
 - comentários soltos na conversa do PR
+
+Forja em modo manual: peça que o usuário cole os comentários. Classificação, tarefas e stubs
+funcionam igual — muda só de onde vem o texto.
 
 Ignore o que já foi resolvido e o que veio de bot de CI — ruído de pipeline não é pedido de
 revisor.

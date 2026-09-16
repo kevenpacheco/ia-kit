@@ -73,11 +73,20 @@ sempre mantém a dívida visível; bloquear empurraria o time a arrancar o gate.
 
 ## 6. Revisão automatizada
 
-Diff de classe `codigo`: dispare subagentes de revisão em paralelo, um por eixo — aderência
-às convenções do projeto, aderência ao pedido, simplificação e reuso. Leitura pura,
-direções independentes: é o caso em que o paralelismo se paga.
+Governada por `commit.revisao_subagente`:
 
-Diff de classe `docs` ou `config`: não dispare. O custo não se justifica.
+| Valor | Dispara |
+|---|---|
+| `sempre` | todo diff de classe `codigo` |
+| `por_limiar` (padrão) | diff `codigo` acima de `commit.revisao_limiar` |
+| `nunca` | nada |
+
+Disparando: subagentes em paralelo, um por eixo — aderência às convenções do projeto,
+aderência ao pedido, simplificação e reuso. Leitura pura com direções independentes é o caso
+em que o paralelismo se paga.
+
+Diff `docs` ou `config`, ou abaixo do limiar: não dispare. Num diff de três linhas a revisão
+repete o que lint e testes já disseram, e é o segundo maior consumo do kit.
 
 A revisão é **informativa, não bloqueante**. Mostre os achados junto com a mensagem
 proposta; quem decide corrigir é o usuário.

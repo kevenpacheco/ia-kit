@@ -90,9 +90,10 @@ comando existe, o projeto é que está sujo.
 
 ### D3 — Teto de contexto por skill, com divulgação progressiva
 
-- `SKILL.md` contém apenas o fluxo de decisão. Teto: **150 linhas**.
-- Tabelas longas, exemplos e casos de borda vão para arquivos de referência, carregados sob
-  demanda.
+- Arquivo de fluxo contém apenas o fluxo de decisão. Teto: **150 linhas**.
+- Arquivo de referência: teto de **200 linhas**, carregado sob demanda. Estourou, quebre por
+  assunto. "Sem teto" foi como o v1 chegou a 434 linhas num arquivo carregado sempre.
+- Tabelas longas, exemplos e casos de borda vão para referência.
 - Proibido no núcleo: gerar automaticamente arquivo de contexto do projeto.
 
 **Motivo:** contexto gerado por LLM reduz sucesso em 3% e aumenta custo em mais de 20%
@@ -150,14 +151,28 @@ direções independentes em que o multiplicador se paga.
 **Motivo:** roteamento por tier economiza 30% a 50% sozinho; combinado com cache passa de
 70%. A varredura é a etapa de maior volume e a que menos exige raciocínio profundo.
 
-### D8 — Orçamento de token por tarefa
+**Limite de aplicação:** depende do que cada ferramenta expõe. Subagente costuma aceitar
+modelo próprio; a etapa principal, nem sempre. Onde não dá para impor, o campo `modelos` vale
+como recomendação registrada — e a economia só é afirmada depois de aparecer no baseline.
+Prometer número que o kit não controla é como a economia vira folclore.
 
-Cada tarefa tem teto de tokens. Estourou: para, registra o consumo e devolve para o humano. O
-relatório de fechamento do `k-execute` informa custo por tarefa.
+### D8 — Limite de tarefa por sinal observável
 
-**Motivo:** uma tarefa agentic consome tipicamente de 1 a 3,5 milhões de tokens; o custo real
-observado no mercado vai de US$ 0,03 a US$ 2,60 por tarefa, conforme o volume de contexto
-carregado. Sem teto, o custo é descoberto na fatura.
+Cada tarefa tem limite de **arquivos lidos, rodadas de ferramenta e minutos**. Estourou
+qualquer um: para, diz qual estourou, devolve para o humano.
+
+**Por que não contagem de token:** a versão anterior desta decisão fixava um teto de tokens
+por tarefa. O agente não lê o próprio consumo de forma confiável durante a execução, então a
+regra virava estimativa — e regra que ninguém consegue cumprir ensina o executor a ignorar
+regras. Os três sinais são observáveis sem instrumentação especial.
+
+**Custo em dinheiro é retrospectivo.** O fechamento do `k-execute` informa o que a ferramenta
+reportar; campo vazio quando ela não reporta. Uma tarefa agentic consome tipicamente de 1 a
+3,5 milhões de tokens, e o custo observado no mercado vai de US$ 0,03 a US$ 2,60 — medir
+depois e de verdade vale mais que prever antes e errar.
+
+**Uso real do limite:** tarefa que estoura quase sempre está mal quebrada. O sinal serve mais
+como diagnóstico do `k-task` do que como controle de custo.
 
 ### D9 — Uma tarefa por invocação é política de token e de qualidade
 
@@ -233,9 +248,16 @@ kit deixa de ser kit.
 
 ### D13 — Suite de referência e métricas
 
-**Suite de referência:** de 5 a 10 tarefas reais com resultado conhecido, cobrindo greenfield
-e brownfield. Rodadas com e sem o kit. Compara: resolveu ou não, tokens, custo, número de
-intervenções humanas.
+**Suite de referência:** protocolo em `baseline/PROTOCOLO.md` — composição obrigatória por
+fatia, procedimento das duas rodadas, o que medir e o critério de aceite de uma mudança no
+núcleo. Modelos de tarefa e de resultado em `baseline/tarefas/` e `baseline/resultados/`.
+
+**Coleta das métricas:** `nucleo/referencias/metricas.md` — como medir cada eixo com git e
+ferramenta agnóstica de stack, onde registrar, e o que não medir.
+
+A suite está **vazia**: o instrumento existe, o conteúdo depende de escolher repositórios-alvo
+e commits de gabarito. Enquanto isso, toda decisão deste documento está apoiada só em
+evidência externa — menos do que o kit exige de si mesmo.
 
 **Métricas de repositório**, coletadas desde o primeiro dia:
 
@@ -264,6 +286,12 @@ corpo aponta para o arquivo de fluxo no núcleo.
 | Claude Code | `.claude/skills/k-*/SKILL.md` |
 | Codex, Copilot e afins | bloco delimitado em `AGENTS.md` |
 | Cursor | `.cursor/rules/*` |
+
+**A mesma regra vale para a forja.** Escrever o fluxo em cima de `gh` amarrava o kit ao
+GitHub com a mesma força com que `.claude/` o amarrava a uma ferramenta de IA. `git.forja` no
+contrato e `nucleo/referencias/forja.md` isolam o **como**; o **o quê** — um PR por fluxo,
+draft com ponta solta, merge humano — fica no fluxo. Sem CLI de forja, o kit degrada para
+modo manual explícito, e nunca afirma ter aberto um PR que não existe.
 
 **Regra:** shim é ponteiro, nunca cópia. Regra duplicada em adaptador sai de sincronia na
 primeira atualização do núcleo, e aí cada ferramenta passa a seguir uma versão diferente do

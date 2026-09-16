@@ -50,7 +50,9 @@ Informativa, não bloqueante. Mostre os achados junto do resumo e siga.
 
 ## Pull request
 
-Abra depois do push e imprima a URL.
+Abra depois do push e imprima a URL. O comando depende de `git.forja` — tabela em
+`forja.md`. Forja em modo manual: monte o corpo, entregue para abertura manual, e **não diga
+que abriu**.
 
 - Alvo: pergunte. Sem padrão fixo — assumir `main` cria PR errado em projeto com branch de
   release ou de integração.
@@ -94,17 +96,12 @@ Só pergunte sobre merge se o alvo for branch protegida. Outros alvos: pare no P
 Merge exige **aprovação explícita para aquele PR**. Aprovação anterior, em outro PR, não
 vale como permissão permanente.
 
-Aprovado:
-
-```bash
-gh pr merge <numero-ou-url> --merge --delete-branch
-git checkout <principal>
-git pull origin <principal>
-```
+Aprovado: use o comando de merge da forja (`forja.md`), apague a branch remota e volte para a
+principal atualizada.
 
 Não há espera proativa de CI. Se a branch protegida exige checks e eles não passaram, o
-comando falha: reporte o motivo a partir da saída do `gh` e pare. Sem repetir
-automaticamente, sem contornar proteção. Esperar ou corrigir é decisão do usuário.
+comando falha: reporte o motivo a partir da saída e pare. Sem repetir automaticamente, sem
+contornar proteção. Esperar ou corrigir é decisão do usuário.
 
 Recusado: pare. PR aberto, branch intacta, decisão segue manual.
 

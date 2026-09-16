@@ -1,119 +1,130 @@
-# Achados abertos — v2
+# Achados — v2
 
-Pontas soltas encontradas ao escrever o núcleo do v2. Nenhuma bloqueia o kit; todas merecem
-decisão antes de considerar o v2 fechado.
+Pontas soltas encontradas ao escrever o núcleo, e o que foi feito com cada uma.
 
-Ordem: impacto decrescente.
+Status em 2026-09-15: **10 levantados, 10 resolvidos.** A2 e A5 foram resolvidos no
+instrumento, não no resultado — a diferença está descrita em cada um.
 
 ---
 
-## A1 — `execucao.teto_tokens_tarefa` não é verificável hoje
+## A1 — Teto de tokens por tarefa não era verificável
 
-**Onde:** D8; `nucleo/fluxo/k-execute.md`, passo 3.
+**Era:** `execucao.teto_tokens_tarefa` mandava parar acima de um número de tokens. O agente
+não lê o próprio consumo de forma confiável durante a execução, então a regra virava
+estimativa.
 
-O kit manda parar quando o consumo da tarefa passa do teto, mas o agente não tem leitura
-confiável do próprio consumo em tempo real durante a execução. Na prática a regra vira
-estimativa, ou é ignorada.
+**Resolvido:** campo removido, substituído por `execucao.limites_tarefa` — arquivos lidos,
+rodadas de ferramenta, minutos. Três sinais observáveis sem instrumentação especial. Custo em
+dinheiro passou a ser retrospectivo, no fechamento do `k-execute`, com campo vazio quando a
+ferramenta não reporta.
 
-**Saídas possíveis:** medir por proxy observável (número de arquivos lidos, rodadas de
-ferramenta, tempo de parede); coletar o custo real depois da execução e usar o teto só como
-alarme retroativo; ou remover o campo até existir leitura confiável.
+D8 reescrito. Campo antigo registrado em `nucleo/esquema.yml`, seção `removidos`, com
+substituto — quem atualizar de uma versão anterior recebe o aviso no `k-init`.
 
-**Risco de não decidir:** regra que ninguém consegue cumprir ensina o executor a ignorar
-regras.
+## A2 — Suite de referência não existia
 
-## A2 — Suite de referência não existe
+**Era:** "mudança no núcleo só entra se a suite não piorar" sem suite.
 
-**Onde:** D13; item 7 da ordem de construção.
+**Resolvido (instrumento):** `baseline/PROTOCOLO.md` define composição obrigatória por fatia
+(2 greenfield, 3 evolução, 3 legado, 2 bug), o procedimento das duas rodadas, as oito métricas
+e o critério de aceite. Modelos em `baseline/tarefas/` e `baseline/resultados/`.
+`nucleo/referencias/metricas.md` diz como coletar cada eixo com git e ferramenta agnóstica de
+stack.
 
-Todo o v2 está escrito em cima de evidência externa, mas nenhuma decisão foi validada neste
-kit. Sem a suite, "mudança no núcleo só entra se a suite não piorar" é regra sem instrumento.
+**Não resolvido (conteúdo):** a suite está vazia. Falta escolher repositórios-alvo e commits
+de gabarito — trabalho que exige código real, não decisão de arquitetura. Até lá, todas as
+decisões continuam apoiadas só em evidência externa.
 
-**Falta definir:** quais 5 a 10 tarefas reais entram, onde vive o repositório de teste, e
-como comparar rodadas com e sem o kit.
+## A3 — Segurança "no diff" dependia da ferramenta
 
-## A3 — Segurança "no diff" depende da ferramenta
+**Era:** o gate mandava varrer o diff, sem checar se a ferramenta sabe fazer isso.
 
-**Onde:** D10; `nucleo/referencias/gate.md`.
+**Resolvido:** `comandos.seguranca_diff` virou campo próprio, com placeholders `{base}` e
+`{arquivos}`. `gate.md` traz a invocação incremental por ferramenta (Semgrep com
+`--baseline-commit`, Gitleaks com `protect --staged`, e assim por diante) e marca `npm audit`
+como não incremental. O `k-init` testa o modelo contra um diff real antes de gravar; falhou,
+o campo fica vazio e o gate cai para varredura completa **avisando o custo**.
 
-O gate manda rodar segurança sobre o diff, não sobre o repositório. Nem toda ferramenta faz
-isso de forma direta: exige comparação com um commit base, ou uma lista explícita de arquivos
-alterados. O `k-init` hoje detecta se a ferramenta existe, mas não se ela sabe operar em modo
-incremental.
+## A4 — Rodapé de atribuição de IA voltava pela ferramenta
 
-**Consequência se ignorado:** o gate roda varredura completa, leva minutos, e o time desliga
-— exatamente o cenário que a decisão tentava evitar.
+**Era:** o contrato proíbe, mas a ferramenta anexa por padrão, fora do alcance do shim.
+Aconteceu nos três primeiros commits desta branch.
 
-## A4 — Rodapé de atribuição de IA pode voltar pela ferramenta
+**Resolvido:** o `k-init` passou a conferir a configuração da ferramenta contra o contrato na
+instalação e avisar onde desligar. `mensagem-commit.md` ganhou o procedimento para quando o
+rodapé escapa: remover antes de commitar, ou reescrever a mensagem em commit não empurrado.
 
-**Onde:** `nucleo/referencias/mensagem-commit.md`; `commit.atribuicao_ia`.
+## A5 — Roteamento de modelo era parcialmente implementável
 
-A regra proíbe atribuição de IA na mensagem, e o contrato registra isso. Mas a ferramenta em
-uso pode reinserir o rodapé por padrão, fora do alcance do shim. Aconteceu nos três primeiros
-commits desta branch, que precisaram ser reescritos.
+**Era:** o kit prometia economia de 30% a 50% com roteamento que não consegue impor.
 
-**Saída provável:** o `k-init` verificar a configuração da ferramenta durante a instalação e
-avisar quando ela contradiz o contrato.
+**Resolvido (honestidade):** D7 ganhou a seção de limite de aplicação. Subagente costuma
+aceitar modelo próprio; a etapa principal, nem sempre. Onde não dá para impor, `modelos` vale
+como recomendação registrada, e a economia só é afirmada depois de aparecer no baseline.
 
-## A5 — Roteamento de modelo é parcialmente implementável
+**Não resolvido (capacidade):** continua dependendo do que cada ferramenta expõe. Isso é
+limite externo, não dívida do kit.
 
-**Onde:** D7; `modelos.forte` / `modelos.barato`.
+## A6 — `k-revisao` assumia GitHub
 
-Escolher modelo por etapa depende do que cada ferramenta expõe. Subagente costuma aceitar
-modelo próprio; a etapa principal, nem sempre. Hoje o kit escreve a intenção ("modelo barato
-serve aqui") sem poder garantir.
+**Era:** leitura de comentários e abertura de PR escritas em cima de `gh`, contradizendo o
+D14.
 
-**Saída:** tratar como recomendação explícita no texto da etapa, e medir o efeito real na
-suite de referência antes de prometer economia.
+**Resolvido:** `git.forja` no contrato e `nucleo/referencias/forja.md` com a tabela de
+operações por plataforma — GitHub, GitLab, Bitbucket, Azure e `nenhuma`. `k-revisao`,
+`shipping.md` e `k-execute` passaram a consultar a forja em vez de chamar `gh` direto. Sem
+CLI, o fluxo degrada para modo manual explícito: monta o corpo, entrega para abertura manual,
+e **nunca afirma ter aberto um PR que não existe**. D14 registra que a regra vale para forja
+também.
 
-## A6 — `k-revisao` assume GitHub
+## A7 — O modo de execução era decidido em dois lugares
 
-**Onde:** `nucleo/fluxo/k-revisao.md`; `nucleo/referencias/shipping.md`.
+**Era:** o `k-spec` consultava `execucao.modo_padrao` para decidir se encadeava, mas o modo
+real do fluxo só nasce no `k-plan`.
 
-Leitura de comentários e abertura de PR estão escritas em cima de `gh`. Projeto em GitLab,
-Bitbucket ou Azure DevOps não tem esse comando.
+**Resolvido:** campo novo `execucao.encadeamento` (`automatico` | `manual`), lido pelas duas
+etapas. O modo de execução governa granularidade e autonomia; encadeamento virou decisão
+separada, com campo próprio. Duas coisas diferentes, dois campos.
 
-**Contradição com D14:** o kit se diz agnóstico de ferramenta de IA, mas ficou acoplado a uma
-forja. Precisa do mesmo tratamento: um campo no contrato (`git.forja`) e um adaptador por
-forja, ou uma degradação explícita para modo manual.
+## A8 — Referências não tinham teto de tamanho
 
-## A7 — O modo de execução é decidido em dois lugares
+**Era:** teto de 150 linhas só para arquivo de fluxo. Referência sem limite foi como o v1
+chegou a 434 linhas.
 
-**Onde:** `execucao.modo_padrao` no contrato; `modo_execucao` no `plan.md`.
+**Resolvido:** D3 fixa **200 linhas** para referência. `contrato.md` estourou na hora
+(218 linhas) e foi cortado: candidatos de ferramenta de segurança e detalhe de invocação
+migraram para `gate.md`, que é onde são usados.
 
-O `k-spec` consulta o modo do contrato para decidir se encadeia direto no `k-plan`, mas o modo
-real do fluxo só é definido pelo `k-plan`, depois da classificação. Nos casos em que os dois
-divergem, o encadeamento do `k-spec` usou informação desatualizada.
+## A9 — Revisão por subagente rodava em todo commit de código
 
-**Impacto:** baixo — erra no sentido seguro (encadeia menos do que poderia). Vale simplificar:
-ou o `k-spec` para de consultar o modo, ou o contrato passa a ser a única fonte e o `k-plan`
-só confirma.
+**Era:** segundo maior consumo do kit, disparado inclusive em diff de três linhas, sem
+medição.
 
-## A8 — Referências não têm teto de tamanho
+**Resolvido:** `commit.revisao_subagente` com três valores (`sempre`, `por_limiar`, `nunca`),
+padrão `por_limiar`, e `commit.revisao_limiar` em 3 arquivos ou 80 linhas. Abaixo do limiar a
+revisão quase sempre repete o que lint e testes já disseram.
 
-**Onde:** D3.
+A pergunta de fundo — quanto a revisão acha que o gate não acha — continua sendo para o
+baseline responder. O limiar é a aposta enquanto o dado não existe.
 
-O teto de 150 linhas vale para arquivo de fluxo. As referências ficaram sem limite declarado,
-e `contrato.md` já está perto de 150. Como referência é carregada sob demanda, o custo é
-menor — mas "sem teto" é como o v1 chegou a 434 linhas.
+## A10 — Nada validava o contrato contra o núcleo
 
-**Sugestão:** teto próprio, mais folgado, e quebra por assunto quando estourar.
+**Era:** campo órfão ou ausente só aparecia quando uma etapa falhava no meio do trabalho.
 
-## A9 — Revisão automatizada por subagente em todo commit de código
+**Resolvido:** `nucleo/esquema.yml`, legível por máquina, com obrigatoriedade, tipo, valores
+aceitos e quem consome cada campo, mais a seção `removidos`. O `k-init`, em reconfiguração e
+atualização, compara e reporta antes de qualquer outra coisa.
 
-**Onde:** `nucleo/fluxo/k-commit.md`, passo 6.
+---
 
-Diff de código dispara subagentes de revisão a cada commit. É leitura com direções
-independentes, então respeita o D6 — mas continua sendo o segundo maior consumo do kit,
-depois do `k-scan`, e ainda não foi medido.
+## O que segue aberto
 
-**A responder com dado:** a revisão por subagente pega o que o gate já não pegou? Se a maior
-parte dos achados for redundante com lint e testes, o custo não se paga.
+Nenhum achado bloqueia o kit. O que falta não é correção, é conteúdo e medição:
 
-## A10 — Nada valida o contrato contra o núcleo
+| Pendência | De onde vem |
+|---|---|
+| Popular a suite de referência com tarefas reais | A2 |
+| Medir o valor da revisão por subagente | A9 |
+| Confirmar a economia do roteamento de modelo | A5 |
 
-Campo do contrato que o núcleo não usa mais, ou campo novo do núcleo ausente no contrato, só
-aparece quando uma etapa falha no meio do trabalho.
-
-**Sugestão:** o `k-init`, em modo atualização, comparar o contrato com o esquema da versão
-instalada e reportar campos órfãos e ausentes.
+As três dependem do mesmo trabalho: rodar o baseline pelo menos uma vez.

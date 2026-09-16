@@ -54,8 +54,13 @@ Marque `em-andamento` antes de começar.
   escreveu para e pergunta. Em `greenfield`, decisões de implementação equivalentes seguem
   sem perguntar.
 
-Consumo acima de `execucao.teto_tokens_tarefa`: pare, registre o consumo e devolva. Tarefa
-que estoura o teto quase sempre está mal quebrada.
+Acompanhe os sinais de `execucao.limites_tarefa`: arquivos lidos, rodadas de ferramenta,
+minutos. Estourou qualquer um: pare, diga **qual** sinal estourou e devolva. São sinais
+observáveis, não contagem de token — o agente não lê o próprio consumo de forma confiável
+durante a execução.
+
+Tarefa que estoura quase sempre está mal quebrada. O sinal serve mais como diagnóstico da
+quebra do que como controle de custo.
 
 ## 4. Fechar a tarefa
 
@@ -91,12 +96,13 @@ Restam <k> tarefas. Próximo passo: /k-execute
    - `false`: pergunte se é hora de subir. Não: pare, tudo commitado localmente.
    - `true`: siga sem perguntar, desde que as condições de `referencias/shipping.md` estejam
      satisfeitas.
-4. **Alvo do PR**: pergunte, sem default fixo. Com `shipping.automatico: true`, use o alvo
-   registrado no contrato ou pergunte uma vez e registre.
+4. **Alvo do PR**: `shipping.alvo_pr`, se preenchido. Vazio: pergunte, sem default fixo.
 5. **Título e corpo**: monte conforme `referencias/pr-corpo.md`. Este conteúdo é
    responsabilidade desta etapa — o `k-commit` publica, não inventa.
 6. **Delegue ao `k-commit`**: push único, PR (draft se bater `shipping.pr_draft_quando`),
-   URL impressa. Merge só com aprovação explícita.
+   URL impressa. Merge só com aprovação explícita. Forja em modo manual
+   (`referencias/forja.md`): apresente corpo e comando de push prontos para copiar, e diga
+   que o PR não foi aberto.
 7. **Liste os stubs** que este fluxo gerou. Entram na fila do `/k-spec` quando o PR mergear.
 
 Depois do PR, comentário de revisor entra pelo `/k-revisao`.

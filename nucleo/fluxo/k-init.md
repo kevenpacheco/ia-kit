@@ -18,10 +18,28 @@ antemão.
 
 Nunca sobrescrever contrato existente sem mostrar o diff e receber confirmação.
 
+**Conferir contrato contra o esquema** (reconfiguração e atualização): compare com
+`.ia-kit/esquema.yml` e reporte, antes de qualquer outra coisa:
+
+- campo obrigatório ausente
+- campo presente que o esquema não conhece (órfão)
+- campo listado em `removidos` — diga a versão em que saiu e qual é o substituto
+
+Campo órfão e campo ausente só aparecem quando uma etapa falha no meio do trabalho. Conferir
+aqui é barato.
+
 ## 1. Detectar ferramenta
 
 Procure: `.claude/` → `claude-code`. `AGENTS.md` → `agents-md`. `.cursor/` → `cursor`.
 Nenhuma encontrada, ou mais de uma: pergunte quais shims gerar.
+
+**Conferir a configuração da ferramenta contra o contrato.** Padrão da ferramenta que
+contradiz o contrato precisa aparecer aqui, não num commit revisado depois. O caso conhecido:
+`commit.atribuicao_ia: false` enquanto a ferramenta anexa rodapé de IA por padrão. Avise e
+diga onde desligar.
+
+**Detectar a forja** pela URL do remoto, e confirmar que o CLI correspondente existe e
+responde (`referencias/forja.md`). Sem CLI: grave a forja e marque o modo manual.
 
 ## 2. Detectar stack
 
@@ -45,8 +63,14 @@ Monte candidatos para `lint`, `formato`, `teste_unit`, `teste_integracao`, `suit
 da fonte detectada. Não invente comando que não aparece em script, alvo ou convenção da
 stack.
 
-Para `seguranca`, consulte a tabela de candidatos em `referencias/contrato.md` e verifique
-se a ferramenta está instalada.
+Para `seguranca`, consulte a tabela de candidatos em `referencias/contrato.md` e verifique se
+a ferramenta está instalada.
+
+Para `seguranca_diff`, teste se a ferramenta detectada sabe operar de forma incremental,
+usando os modelos de `referencias/gate.md`. Rode o modelo contra um diff real do repositório.
+Não funcionou de forma confiável: deixe o campo vazio — o gate cai para varredura completa e
+avisa o custo. Prometer incremental que não existe faz o gate demorar minutos e ser
+desligado na primeira semana.
 
 ## 4. Validar executando
 
@@ -68,8 +92,8 @@ Comando de suite longo: avise o tempo estimado e pergunte antes de rodar.
 Uma pergunta por vez. Sempre com recomendação e o trade-off escrito. Só pergunte o que a
 detecção não resolveu.
 
-Ordem: raiz de specs → branch principal e protegidas → modo padrão de execução → teto de
-tokens por tarefa → modelos forte e barato.
+Ordem: raiz de specs → branch principal e protegidas → modo padrão de execução →
+encadeamento → limites de tarefa → modelos forte e barato.
 
 **Raiz de specs:** se já existe `docs/specs/` ou `documentation/specs/`, use e não pergunte.
 
@@ -101,7 +125,7 @@ atualização do kit.
 ## 8. Fechar
 
 ```
-Contrato: .ia-kit/contrato.yml (kit 2.0.0-alpha.1)
+Contrato: .ia-kit/contrato.yml (kit 2.0.0-alpha.2)
 Stack: TypeScript, Next.js    Modo: evolucao    Specs: docs/specs
 
 Comandos validados:
