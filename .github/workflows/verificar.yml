@@ -1,0 +1,65 @@
+name: verificar
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  invariantes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar invariantes do kit
+        run: bash ci/verificar.sh
+
+  instalacao:
+    # Prova que o pacote desta ref instala e atualiza de verdade, preservando
+    # o que e do projeto. So roda em tag: precisa do pacote publicado.
+    runs-on: ubuntu-latest
+    needs: invariantes
+    if: github.ref_type == 'tag'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar a partir desta tag num projeto vazio
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/projeto && cd /tmp/projeto
+          sh "$GITHUB_WORKSPACE/instalador/instalar.sh" \
+            --origem "${{ github.server_url }}/${{ github.repository }}" \
+            --versao "${{ github.ref_name }}"
+          test -f .ia-kit/VERSAO
+          test -f .ia-kit/fluxo/k-init.md
+          test -f .ia-kit/esquema.yml
+
+      - name: Atualizar preservando contrato.yml e taticas/
+        run: |
+          set -euo pipefail
+          cd /tmp/projeto
+          printf 'kit_versao: 0.0.0-teste\n' > .ia-kit/contrato.yml
+          mkdir -p .ia-kit/taticas && printf 'regra local\n' > .ia-kit/taticas/local.md
+          sh "$GITHUB_WORKSPACE/instalador/instalar.sh" \
+            --origem "${{ github.server_url }}/${{ github.repository }}" \
+            --versao "${{ github.ref_name }}"
+          grep -q '0.0.0-teste' .ia-kit/contrato.yml
+          grep -q 'regra local' .ia-kit/taticas/local.md
+
+  publicar:
+    runs-on: ubuntu-latest
+    needs: [invariantes, instalacao]
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSAO=$(tr -d ' \t\r\n' < nucleo/VERSAO)
+          gh release create "${{ github.ref_name }}" \
+            --title "ia-kit ${VERSAO}" \
+            --notes "Mudancas desta versao: CHANGELOG.md, secao ${VERSAO}. Passo a passo da atualizacao: docs/migracao.md."

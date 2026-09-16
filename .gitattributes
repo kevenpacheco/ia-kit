@@ -1,0 +1,6 @@
+# Script de shell precisa de LF mesmo em checkout no Windows. Com CRLF, o `\r`
+# entra no fim de cada comando e o sh quebra com erro que nao diz o motivo.
+*.sh text eol=lf
+
+# PowerShell le CRLF sem problema; manter o padrao do Windows.
+*.ps1 text eol=crlf

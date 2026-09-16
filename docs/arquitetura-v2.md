@@ -237,14 +237,34 @@ o agente decide sozinho.
 
 ### D12 — Instalação e versionamento
 
-- Núcleo com versão semântica, em `nucleo/VERSAO`. O contrato grava a versão que gerou ele.
-- Instalar = copiar `nucleo/` para `.ia-kit/` e rodar `k-init`, que detecta, valida, entrevista,
-  grava o contrato e gera os shims.
-- `kit_versao` diferente do núcleo instalado: `k-init` roda em modo atualização, com diff campo
-  a campo e as respostas anteriores preservadas.
+- Núcleo com versão semântica, fonte única em `nucleo/VERSAO`. O contrato grava a versão que
+  gerou ele, em `kit_versao`, e a URL de onde ele veio, em `kit_origem`.
+- **O núcleo é vendorizado:** `.ia-kit/` é cópia commitada no repositório do projeto. Não é
+  submodule, não é pacote de linguagem, não é symlink.
+- Instalar e atualizar = mesmo comando. O instalador (`instalador/instalar.sh` e `.ps1`) só
+  troca arquivo, preservando `contrato.yml`, `taticas/` e `metricas/`. Quem reconcilia
+  contrato e shims é o `k-init`.
+- `kit_versao` diferente de `.ia-kit/VERSAO`: `k-init` roda em modo atualização, com diff
+  campo a campo, as respostas anteriores preservadas, e poda de shim órfão.
+
+**Por que vendorizado:** o agente precisa ler os arquivos. Submodule some em clone raso e em
+worktree; pacote de linguagem amarra um kit agnóstico a um ecossistema; arquivo fora do repo
+não existe no CI. Como efeito colateral, a atualização aparece no diff do PR — quem revisa vê
+qual regra mudou, e `git checkout -- .ia-kit` desfaz.
+
+**Por que script burro e skill esperta:** o instalador não entrevista e não gera shim. Lógica
+duplicada entre um script e um fluxo sai de sincronia, e aí o script passa a instalar uma
+versão do processo que o núcleo não descreve.
+
+**O que cada dígito promete** está escrito e é verificado: tabela de semver em
+`nucleo/referencias/instalacao.md`, uma seção por versão em `CHANGELOG.md`, passo a passo por
+MAJOR em `docs/migracao.md`. `ci/verificar.sh` barra o release quando a tag não bate com
+`nucleo/VERSAO`, quando falta seção de CHANGELOG, quando um teto de linha do D3 estoura, ou
+quando fluxo e shim saem de sincronia.
 
 **Motivo:** sem instalação e atualização definidas, cada projeto vira um fork silencioso e o
-kit deixa de ser kit.
+kit deixa de ser kit. E promessa de compatibilidade que ninguém verifica vira folclore do
+mesmo jeito que número de economia sem baseline.
 
 ### D13 — Suite de referência e métricas
 

@@ -2,11 +2,14 @@
 # O k-init compara `.ia-kit/contrato.yml` com este arquivo e reporta campo órfão
 # (existe no contrato, não existe aqui) e campo ausente (obrigatório aqui, faltando lá).
 # Prosa e justificativa de cada campo ficam em referencias/contrato.md.
-
-versao: 2.0.0-alpha.2
+#
+# Este arquivo não declara versão. A versão do núcleo é única e vive em `VERSAO`,
+# ao lado deste arquivo. Duas fontes de versão divergem no primeiro release corrido.
 
 campos:
   kit_versao:          {obrigatorio: true,  tipo: string,  usado_por: [k-init]}
+  kit_origem:          {obrigatorio: true,  tipo: string,  usado_por: [k-init],
+                        exemplo: "https://github.com/kevenpacheco/ia-kit"}
   ferramentas:         {obrigatorio: true,  tipo: lista,   usado_por: [k-init],
                         valores: [claude-code, agents-md, cursor]}
 
@@ -64,6 +67,6 @@ campos:
 # um deles no contrato e diz o que fazer.
 removidos:
   execucao.teto_tokens_tarefa:
-    saiu_em: 2.0.0-alpha.2
+    saiu_em: 2.0.0
     motivo: consumo de token não é legível de forma confiável durante a execução
     substituto: execucao.limites_tarefa

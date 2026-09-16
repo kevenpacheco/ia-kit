@@ -10,7 +10,8 @@ adivinha comando, não infere convenção, não reinterpreta instrução a cada 
 ## Esquema
 
 ```yaml
-kit_versao: 2.0.0-alpha.2          # versão do núcleo que gerou este contrato
+kit_versao: 2.0.0          # versão do núcleo que gerou este contrato
+kit_origem: https://github.com/kevenpacheco/ia-kit   # de onde atualizar
 ferramentas: [claude-code]         # shims gerados: claude-code | agents-md | cursor
 
 projeto:
@@ -79,6 +80,7 @@ modelos:                           # aplicado onde a ferramenta permite; ver "Mo
 | Campo | Obrigatório | Quem usa | Se faltar |
 |---|---|---|---|
 | `kit_versao` | sim | `k-init` | migração não roda |
+| `kit_origem` | sim | `k-init` | ninguém sabe de onde atualizar |
 | `ferramentas` | sim | `k-init` | shim não é regenerado |
 | `projeto.nome` | sim | corpo de PR, commit | pergunta |
 | `projeto.stack` | sim | `k-plan`, `k-task` | pergunta |
@@ -188,7 +190,8 @@ fluxo. Comando que roda e sai diferente de zero é válido — o projeto é que 
 Precedência: contrato → convenção documentada do projeto → padrão do núcleo. Nada abaixo
 sobrescreve o que está acima.
 
-`kit_versao` diferente do núcleo instalado: modo atualização, com diff campo a campo,
+`kit_versao` diferente de `.ia-kit/VERSAO`: modo atualização, com diff campo a campo,
 confirmação, e as respostas anteriores preservadas. O esquema legível por máquina está em
 `.ia-kit/esquema.yml`, e é contra ele que o `k-init` confere campo órfão, campo ausente e
-campo removido.
+campo removido. O que cada bump de versão promete, e o que o instalador preserva:
+`instalacao.md`.

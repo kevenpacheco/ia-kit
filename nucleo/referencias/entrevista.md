@@ -68,3 +68,31 @@ corrigir um achado errado antes que ele vire premissa da entrevista inteira.
 Não há número certo, mas há sinal de excesso: se duas perguntas seguidas não mudariam nada
 no resultado, a entrevista acabou. Perguntar além disso gasta a paciência que a pergunta
 importante vai precisar.
+
+## k-init: campos do contrato
+
+O `k-init` também entrevista, e as regras acima valem inteiras. Só pergunte o que a detecção
+e a validação por execução não resolveram. O que muda é o conteúdo:
+
+**Raiz de specs:** se já existe `docs/specs/` ou `documentation/specs/`, use e não pergunte.
+
+**Modo padrão** (decide o quanto o agente decide sozinho):
+
+| Modo | Quando | Efeito |
+|---|---|---|
+| `greenfield` | base nova, poucos consumidores | tarefas maiores, autonomia alta |
+| `evolucao` | base viva, em mudança | plano obrigatório, tarefas médias |
+| `legado` | base antiga, alto acoplamento | tarefas mínimas, gate cheio, humano decide |
+
+Na dúvida, recomende `evolucao`.
+
+**Segurança ausente:** se nenhuma ferramenta foi detectada, ofereça instalar uma dos
+candidatos de `gate.md`. Recusa: grave `seguranca: ""` mais `seguranca_pendente` com a data,
+e avise que o `k-execute` vai cobrar em toda invocação.
+
+**Origem do kit:** recomende `https://github.com/kevenpacheco/ia-kit` e só pergunte se o
+projeto usa espelho interno. Ver `instalacao.md`.
+
+**Na atualização, não reabra o que já foi respondido.** Pergunte só o campo novo ou o campo
+cujo significado mudou na versão. Entrevista repetida do zero é o jeito mais rápido de
+ensinar o time a nunca atualizar o kit.

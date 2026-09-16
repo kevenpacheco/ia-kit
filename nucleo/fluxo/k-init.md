@@ -3,20 +3,25 @@
 Gera `.ia-kit/contrato.yml` e os shims da ferramenta em uso. Não toca código de aplicação,
 não cria branch, não commita.
 
-Esquema completo dos campos: `.ia-kit/referencias/contrato.md`. Leia sob demanda, não de
-antemão.
+Campos: `referencias/contrato.md`. Versão, atualização e poda de shim:
+`referencias/instalacao.md`. Leia sob demanda, não de antemão.
 
 ---
 
 ## 0. Modo
 
+Compare `kit_versao` do contrato com `.ia-kit/VERSAO` — a versão do núcleo instalado.
+
 | Situação | Modo |
 |---|---|
 | Sem `.ia-kit/contrato.yml` | instalação |
-| Contrato existe, `kit_versao` igual | reconfiguração — pergunta o que revisar |
-| Contrato existe, `kit_versao` diferente | atualização — diff campo a campo, preserva respostas |
+| `kit_versao` igual ao `VERSAO` | reconfiguração — pergunta o que revisar |
+| `kit_versao` diferente do `VERSAO` | atualização — diff campo a campo, preserva respostas |
 
 Nunca sobrescrever contrato existente sem mostrar o diff e receber confirmação.
+
+Na atualização, diga o que a diferença de versão promete antes de mexer em campo: leia a
+tabela de semver em `referencias/instalacao.md` e o `CHANGELOG.md` do kit, se acessível.
 
 **Conferir contrato contra o esquema** (reconfiguração e atualização): compare com
 `.ia-kit/esquema.yml` e reporte, antes de qualquer outra coisa:
@@ -25,8 +30,8 @@ Nunca sobrescrever contrato existente sem mostrar o diff e receber confirmação
 - campo presente que o esquema não conhece (órfão)
 - campo listado em `removidos` — diga a versão em que saiu e qual é o substituto
 
-Campo órfão e campo ausente só aparecem quando uma etapa falha no meio do trabalho. Conferir
-aqui é barato.
+Campo órfão e ausente só aparecem quando uma etapa falha no meio do trabalho — conferir aqui
+é barato.
 
 ## 1. Detectar ferramenta
 
@@ -63,7 +68,7 @@ Monte candidatos para `lint`, `formato`, `teste_unit`, `teste_integracao`, `suit
 da fonte detectada. Não invente comando que não aparece em script, alvo ou convenção da
 stack.
 
-Para `seguranca`, consulte a tabela de candidatos em `referencias/contrato.md` e verifique se
+Para `seguranca`, consulte a tabela de candidatos em `referencias/gate.md` e verifique se
 a ferramenta está instalada.
 
 Para `seguranca_diff`, teste se a ferramenta detectada sabe operar de forma incremental,
@@ -95,37 +100,32 @@ detecção não resolveu.
 Ordem: raiz de specs → branch principal e protegidas → modo padrão de execução →
 encadeamento → limites de tarefa → modelos forte e barato.
 
-**Raiz de specs:** se já existe `docs/specs/` ou `documentation/specs/`, use e não pergunte.
-
-**Modo padrão** (decide o quanto o agente decide sozinho):
-
-| Modo | Quando | Efeito |
-|---|---|---|
-| `greenfield` | base nova, poucos consumidores | tarefas maiores, autonomia alta |
-| `evolucao` | base viva, em mudança | plano obrigatório, tarefas médias |
-| `legado` | base antiga, alto acoplamento | tarefas mínimas, gate cheio, humano decide |
-
-Na dúvida, recomende `evolucao`.
-
-**Segurança ausente:** se nenhuma ferramenta foi detectada, ofereça instalar uma da tabela.
-Recusa: grave `seguranca: ""` mais `seguranca_pendente` com a data, e avise que o
-`k-execute` vai cobrar em toda invocação.
+Recomendação e trade-off de cada um desses campos: `referencias/entrevista.md`, seção
+`k-init`. Leia antes da primeira pergunta.
 
 ## 6. Gravar
 
 Escreva `.ia-kit/contrato.yml` na ordem do esquema — ordem estável faz o arquivo servir de
 prefixo de cache. Nada de timestamp, hash ou estado de git dentro do contrato.
 
-## 7. Gerar shims
+`kit_versao` vem de `.ia-kit/VERSAO`, nunca de memória. `kit_origem` é a URL do repositório
+de onde o núcleo veio; recomende `https://github.com/kevenpacheco/ia-kit` e só pergunte se o
+projeto usa espelho interno. Sem `kit_origem`, ninguém sabe de onde atualizar.
 
-Um shim por ferramenta escolhida, a partir de `adaptadores/<ferramenta>/`. O shim aponta
+## 7. Reconciliar shims
+
+Um shim por ferramenta do contrato, a partir de `adaptadores/<ferramenta>/`. O shim aponta
 para o núcleo; ele **nunca** copia regra. Regra duplicada sai de sincronia na primeira
 atualização do kit.
+
+**Podar o órfão:** shim sem `fluxo/k-*.md` correspondente é removido, com aviso de qual e
+por quê — fluxo removido deixa comando morto apontando para arquivo inexistente. Poda só o
+que o kit gera. Os três casos em `referencias/instalacao.md`.
 
 ## 8. Fechar
 
 ```
-Contrato: .ia-kit/contrato.yml (kit 2.0.0-alpha.2)
+Contrato: .ia-kit/contrato.yml (kit 2.0.0)
 Stack: TypeScript, Next.js    Modo: evolucao    Specs: docs/specs
 
 Comandos validados:
@@ -134,7 +134,7 @@ Comandos validados:
   suite           npm run test:ci         ok
   seguranca       —                       nenhuma ferramenta detectada
 
-Shims gerados: .claude/skills/k-*/SKILL.md
+Shims: .claude/skills/k-*/SKILL.md (8 gravados, 0 podados)
 Pendência: comandos.seguranca vazio — o gate 3 vai avisar a cada k-execute.
 Próximo passo: revise o contrato e commite.
 ```
@@ -145,5 +145,6 @@ Próximo passo: revise o contrato e commite.
 - Gravar comando sem ter executado.
 - Sobrescrever contrato existente sem diff.
 - Copiar regra do núcleo para dentro do shim.
+- Deixar shim órfão apontando para fluxo que não existe mais.
 - Commitar, criar branch ou alterar código de aplicação.
 - Corrigir teste vermelho ou lint sujo encontrado na validação.
