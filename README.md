@@ -1,7 +1,8 @@
 # ia-kit
 
 Fluxo de desenvolvimento assistido por IA, versionado e agnóstico de ferramenta: spec antes
-de código, plano, tarefas, execução com TDD, gate antes do commit e revisão humana no PR.
+de código, plano com tarefas, execução com TDD, gate antes do commit, verificação independente
+antes de subir, e revisão humana no PR.
 
 O núcleo vive em `nucleo/` e é instalado como `.ia-kit/` no projeto que usa o kit. Cada
 ferramenta de IA recebe um shim — um ponteiro para o núcleo, nunca uma cópia da regra.
@@ -40,8 +41,9 @@ O que mudou: `CHANGELOG.md`. Passo a passo por versão: `docs/migracao.md`.
 
 | Caminho | O que é |
 |---|---|
-| `nucleo/fluxo/` | um arquivo por skill: `k-spec`, `k-plan`, `k-task`, `k-execute`, `k-commit`, `k-revisao`, `k-scan`, `k-init` |
-| `nucleo/referencias/` | detalhe carregado sob demanda: contrato, gate, formatos, métricas, instalação |
+| `nucleo/fluxo/` | um arquivo por skill: `k-spec`, `k-plan`, `k-execute`, `k-commit`, `k-revisao`, `k-scan`, `k-init` |
+| `nucleo/referencias/` | detalhe carregado sob demanda: contrato, gate, formatos, verificação, métricas, instalação |
+| `nucleo/scripts/` | gates determinísticos em POSIX sh; exit code decide |
 | `nucleo/esquema.yml` | esquema do contrato, legível por máquina |
 | `nucleo/VERSAO` | fonte única da versão do núcleo |
 | `adaptadores/` | shim por ferramenta: Claude Code, `AGENTS.md`, Cursor |

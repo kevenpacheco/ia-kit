@@ -38,6 +38,35 @@ núcleo ser commitado.
 
 ---
 
+## Para 2.1.0
+
+MINOR no contrato, mas **o fluxo encurtou**: `k-task` e `k-verificar` deixaram de existir
+como skills. Nada do comportamento se perdeu — a quebra em tarefas virou passo do `k-plan`,
+e a verificação virou o encerramento do `k-execute`.
+
+1. Rode o instalador e depois o `k-init`. Ele **poda os shims órfãos** de `k-task` e
+   `k-verificar`, com aviso de qual e por quê.
+2. Atalho ou alias para `/k-task`: aponte para `/k-plan`. Para `/k-verificar`: não precisa de
+   nada, o `k-execute` faz no encerramento.
+3. Revise o resumo do `k-init` antes de aceitar: campo novo, campo órfão e shim podado
+   aparecem lá.
+
+**O que muda de verdade depois do `k-init`:**
+
+- A verificação é porta de conclusão. Fluxo com critério sem evidência não sobe.
+- Critérios de aceite passam a exigir `CA-n`.
+- Em `tipo: bug`, a tarefa 1 precisa provar que o teste discrimina.
+
+**Spec escrita antes da 2.1.0** reprova no `verificar-spec.sh` por falta de `CA-n`. Numere os
+critérios na ordem em que já estão, sem reescrever o texto — é edição mecânica, sem
+julgamento. Specs com `fluxo: concluido` não precisam de nada: elas não voltam ao fluxo.
+
+**Windows sem Git Bash:** os gates de forma são POSIX sh e não rodam. O `k-init` detecta e
+grava `execucao.verificadores: quando_disponivel`; o kit avisa em toda invocação, sem
+bloquear. Instale Git Bash e rode `k-init` de novo para subir para `obrigatorio`.
+
+---
+
 ## Para 2.0.0
 
 Primeira versão publicada. Não há migração: o v1 não tinha contrato, núcleo versionado nem

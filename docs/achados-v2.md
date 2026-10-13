@@ -2,7 +2,7 @@
 
 Pontas soltas encontradas ao escrever o núcleo, e o que foi feito com cada uma.
 
-Status em 2026-09-15: **10 levantados, 10 resolvidos.** A2 e A5 foram resolvidos no
+Status em 2026-09-23: **11 levantados, 11 resolvidos.** A2, A5 e A11 foram resolvidos no
 instrumento, não no resultado — a diferença está descrita em cada um.
 
 ---
@@ -116,6 +116,29 @@ aceitos e quem consome cada campo, mais a seção `removidos`. O `k-init`, em re
 atualização, compara e reporta antes de qualquer outra coisa.
 
 ---
+## A11 — A verificação entrou sem baseline
+
+**Era:** o D13 diz que mudança no núcleo só entra se a suite de referência não piorar. A
+suite está vazia desde o A2, e a 2.1.0 é a maior mudança de comportamento desde o v2.
+
+**Resolvido (honestidade), não resolvido (medição):** a 2.1.0 entrou com exceção registrada,
+em vez de esperar a suite. Esperar travaria o kit; fingir que o D13 foi cumprido seria pior.
+
+O que fica devendo, e só o baseline responde:
+
+| Pergunta | De onde vem |
+|---|---|
+| O verificador independente acha defeito que o gate não acha? | A11 |
+| Quanto a revisão por subagente acha que o gate não acha? | A9 |
+
+As duas são a mesma pergunta em escalas diferentes: **quanto vale olhar o trabalho de novo?**
+A aposta deste release é que vale mais no fim do fluxo, contra critério, do que a cada commit,
+contra convenção — e isso é aposta, não medição.
+
+O que **não** ficou devendo, porque é verificável sem baseline: os quatro scripts rodam
+contra fixture boa e ruim no CI, e a checagem falha se algum deles virar carimbo.
+
+---
 
 ## O que segue aberto
 
@@ -126,5 +149,6 @@ Nenhum achado bloqueia o kit. O que falta não é correção, é conteúdo e med
 | Popular a suite de referência com tarefas reais | A2 |
 | Medir o valor da revisão por subagente | A9 |
 | Confirmar a economia do roteamento de modelo | A5 |
+| Medir se a verificação independente acha o que o gate não acha | A11 |
 
 As três dependem do mesmo trabalho: rodar o baseline pelo menos uma vez.

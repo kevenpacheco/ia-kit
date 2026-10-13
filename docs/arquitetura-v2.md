@@ -188,10 +188,12 @@ de 2 a 30 vezes mais quando aparecem depois de 800 mil tokens de contexto benign
 2. testes afetados
 3. segurança        (SAST + pós-processamento por LLM dos achados)
 4. review por IA    (apenas camada mecânica)
-5. review humano    (lógica de negócio e arquitetura)
+5. verificacao      (por criterio, por fluxo, bloqueante - D16)
+6. review humano    (lógica de negócio e arquitetura)
 ```
 
-Passos 1 a 3 rodam dentro do `k-commit`, antes de gravar o commit. Passos 4 e 5 rodam no PR.
+Passos 1 a 3 rodam dentro do `k-commit`, antes de gravar o commit. O passo 5 roda no
+encerramento do fluxo, antes do push. Passos 4 e 6 rodam no PR.
 
 **O gate pertence ao commit, não ao fluxo.** No v1 ele vivia no `k-execute`, então mudança
 manual, ajuste pequeno e trabalho da IA fora do ciclo entravam no repositório sem lint, sem
@@ -349,12 +351,147 @@ liga uma vez no contrato.
 | Só com suite verde e tarefas fechadas | PR quebrado consome revisor à toa |
 | Draft quando há achado aberto ou modo legado | Draft não convoca o revisor para trabalho com ponta solta |
 | Correção por commit novo, nunca force-push | Force-push deixa comentário órfão e o revisor perde o rastro |
+| Só com verificação independente aprovada | Veredito do autor sobre o próprio trabalho não é veredito (D16) |
 | Merge sempre humano | Volume de PR merged sobe sem mover a entrega; a aprovação é o que liga as duas coisas |
 | Teto de três rodadas por PR | Acima disso o problema é de escopo, não de correção — e o agente não se cansa de aceitar pedido |
 
 **Como saber se deu errado:** as métricas do D13 já cobrem — latência do primeiro review e
 rodadas por PR. Se a latência subir depois de ligar o automático, o kit está produzindo
 ruído, não entrega, e `shipping.automatico` volta para `false`.
+### D16 — A verificação de conclusão é independente do autor
+
+`commit.revisao_subagente` não basta. Ela roda commit a commit, é informativa por decisão,
+dispara por limiar, e executa **dentro do contexto de quem escreveu o código**. Isso é
+auto-avaliação: o revisor herda as premissas do autor e aceita o que o autor achou razoável.
+
+**Regra nova:** todo fluxo fecha com um veredito emitido por subagente **sem o histórico da
+sessão que produziu o código**, contra os critérios de aceite da spec, sobre o range
+`<merge-base>..HEAD`, com evidência `arquivo:linha`. Reprovado não fecha o fluxo e não sobe.
+
+**O detalhe que faz ou quebra a decisão:** skill roda na mesma conversa. Um arquivo de fluxo
+que diz "agora verifique" é lido pelo autor, e a propriedade se perde em silêncio — com a
+etapa parecendo resolvida, que é pior do que não ter etapa. Por isso o encerramento do
+`k-execute` **nunca julga**: ele monta contexto, despacha e registra. Assim
+"autor ≠ verificador" vale independente do ponto de entrada — e é por isso que a verificação
+não precisa de skill própria (D19).
+
+**Por que bloqueia em vez de avisar.** Aviso não lido é aviso que não existe, e a evidência
+do D10 passo 5 é que times que tiraram a verificação do caminho registraram mais defeitos.
+Mas o bloqueio é **de fluxo, não de git**: o encerramento não roda git de escrita; o
+`k-commit` confere um artefato antes de subir.
+
+**`sem-evidencia` conta como reprovado.** Ausência de evidência não é evidência de
+conformidade. Sem essa linha o relatório vira teatro, porque o caminho barato passa a ser
+não procurar.
+
+**Custo assumido:** um subagente forte mais uma suite, por fluxo. Em troca, a revisão
+pré-push deixa de rodar quando existe verificação da rodada — o mesmo diff não é pago duas
+vezes.
+
+**Sem baseline.** Se a verificação independente acha defeito que o gate não acha é pergunta
+aberta, registrada no A11. É a mesma dívida que o A9 tem com a revisão por subagente.
+
+### D17 — Prova por injeção de falha
+
+"Confirme que o teste falha pelo motivo certo" depende do relato do agente e não sobrevive à
+sessão. O que se quer saber é falsificável: **este teste ficaria vermelho sem a correção?**
+
+**Regra:** em `tipo: bug`, tarefa 1, reverta a implementação numa `git worktree` descartável,
+mantenha o teste novo, e confirme o vermelho **pela asserção**. Registre âncora, comando e
+linha decisiva no arquivo da tarefa, commitado.
+
+**A corrida de controle é obrigatória.** Worktree limpa sem dependência instalada deixa todo
+teste vermelho, e aí toda injeção "passa" — prova falsa no sentido otimista, que é o pior
+resultado possível porque produz confiança onde não há cobertura.
+
+**Só em bug, de propósito.** Tarefa de feature que introduz símbolo novo faz o teste falhar
+no import, não na asserção: vermelho pelo motivo errado contaria como prova. O teste de
+regressão de bug exercita ponto de entrada que já existe na âncora.
+
+**A regra do D14 não ganha exceção — ela fica precisa:** *git que muda a história ou o estado
+compartilhado passa pelo `k-commit`.* Worktree descartável não cria commit, não move ref, não
+publica nada e morre na mesma invocação. A lista do que o `k-execute` roda sozinho é fechada,
+e está em `injecao-falha.md`.
+
+### D18 — Gate de forma é script; gate de sentido é agente
+
+O D2 diz que prosa é reinterpretada a cada invocação. Até a 2.0.0, todos os gates do kit eram
+prosa — incluindo a conferência do contrato contra o esquema, que é puramente mecânica.
+
+**Regra:** o que é decidível por forma vira script POSIX sh com exit code em
+`.ia-kit/scripts/`. O que exige julgamento continua com o agente.
+
+**A frase que precisa estar escrita, e está — no cabeçalho de cada script, na referência, e
+na última linha que cada um imprime ao sair 0:** *o script confere forma, o agente confere
+sentido; exit 0 não significa que o trabalho está certo, significa que a forma permite
+verificar.* Sem ela, exit 0 vira carimbo, e o kit troca uma falsa confiança por outra.
+
+**Exit 3 é separado de exit 1.** "Não consegui ler" e "está errado" são coisas diferentes, e
+tratar a primeira como aprovação é o único desfecho inaceitável.
+
+**`sh -n` não basta para um gate.** Script que sai 0 em tudo passa `sh -n` com louvor e é pior
+que a prosa que substituiu. Por isso o CI roda cada verificador contra fixture boa **e ruim**
+e confere o exit code.
+
+**POSIX sh, não Python.** Precedente do próprio `ci/verificar.sh`, e zero dependência nova.
+Python amarraria um kit agnóstico a um ecossistema — o mesmo motivo pelo qual o D12 rejeitou
+pacote de linguagem. Onde `sh` não existe, `execucao.verificadores` degrada avisando, nunca
+em silêncio.
+
+### D19 — Uma etapa existe quando tem parada humana própria
+
+O v2 fatiou o fluxo em oito etapas. A justificativa escrita no `k-task` era contexto:
+
+> roda em invocação separada só para não herdar o contexto de investigação desta etapa
+
+**Isso é falso.** Skill roda na mesma conversa. Não existe contexto novo entre `/k-plan` e
+`/k-task` — a única coisa que dá contexto limpo é despachar subagente. O fatiamento comprava
+um nome para digitar, não isolamento.
+
+**Regra:** etapa separada só se justifica por **parada humana própria** — um ponto onde o
+trabalho para e espera decisão, ou um gatilho que o usuário dispara de fora.
+
+| Etapa | Parada ou gatilho próprio | Veredito |
+|---|---|---|
+| `k-init` | instalação, uma vez por projeto | fica |
+| `k-scan` | gatilho próprio: auditar sem sintoma | fica |
+| `k-spec` | entrevista converge com o humano | fica |
+| `k-plan` | **escolha da opção técnica** — a decisão central | fica |
+| `k-execute` | uma tarefa por invocação, você reinvoca | fica |
+| `k-commit` | porta de git, usada standalone em mudança manual | fica |
+| `k-revisao` | gatilho próprio: comentário chegou no PR | fica |
+| ~~`k-task`~~ | nenhuma: a decisão já foi tomada no plano | **dissolvida no `k-plan`** |
+| ~~`k-verificar`~~ | nenhuma: é automática, e o isolamento vem do subagente | **dissolvida no `k-execute`** |
+
+O que se perde dissolvendo: um comando para reverificar sem refazer o encerramento. Aceito —
+o encerramento é idempotente e barato de reentrar.
+
+O que **não** se perde: a propriedade `autor ≠ verificador`. Ela nunca veio da fronteira da
+skill; vem do despacho para subagente sem histórico, e isso está em `encerramento.md`.
+
+**Corolário, contra o reflexo de voltar a fatiar:** arquivo de fluxo tem teto de 150 linhas
+(D3), e a tentação ao estourar é criar etapa nova. A saída certa é extrair **referência**,
+que carrega sob demanda e não gasta superfície de comando. Foi o que `encerramento.md` e
+`deteccao.md` fizeram.
+
+### D20 — Cerimônia configurável é cerimônia duas vezes
+
+Houve uma versão deste kit com matriz de dimensionamento: três perfis, quatro travas, um
+campo de contrato e 120 linhas de referência, para decidir quanta cerimônia cada fluxo teria.
+
+Foi removida antes de publicar. O raciocínio: a matriz existia para encurtar um fluxo longo
+demais. Com o fluxo em três etapas — `k-spec` → `k-plan` → `k-execute` — não há o que
+encurtar, e o sistema de configuração passa a ser puro custo: mais um campo para configurar
+errado, mais uma tabela para o agente reinterpretar, mais um vocabulário (`porte`,
+`perfil_fluxo`, `trava`) carregado em cada invocação.
+
+**Regra:** antes de adicionar botão para reduzir custo, reduza o custo. Configuração que
+existe para compensar excesso de processo é sintoma do excesso, não solução.
+
+O que sobreviveu da ideia, porque custa uma linha e não um subsistema: a sugestão de promoção
+do `k-commit` acima de `execucao.limiar_promocao`. Ela aponta o fluxo e segue — sem perfil,
+sem trava, sem campo.
+
 
 ## 4. Ordem de construção
 
