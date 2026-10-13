@@ -1,13 +1,14 @@
 # k-plan — decisão técnica
 
-Etapa 2 de 4: `k-spec` → **k-plan** → `k-task` → `k-execute`.
+Etapa 2 de 3: `k-spec` → **k-plan** → `k-execute`.
 
-Transforma o contrato de comportamento em decisão registrada. Decide **o que fazer**; o
-`k-task` quebra em passos.
+Transforma o contrato de comportamento em decisão registrada: decide **o que fazer** e quebra
+em tarefas executáveis.
 
 | Preciso de | Leia |
 |---|---|
 | seções do plano, classificação, escala de opções | `.ia-kit/referencias/plan-formato.md` |
+| formato e regras de quebra da tarefa | `.ia-kit/referencias/tarefa-formato.md` |
 | como perguntar | `.ia-kit/referencias/entrevista.md` |
 | achado fora do escopo | `.ia-kit/referencias/desvio.md` |
 
@@ -39,9 +40,8 @@ Subagentes **somente de leitura**, um por eixo, todos na mesma mensagem.
 
 Conclusão com `arquivo:linha`, nunca despejo de código.
 
-Pesquisa externa só quando o código não responde: contrato de integração de terceiro,
-comportamento de biblioteca já usada. Nunca busque "melhor prática" genérica — a resposta
-costuma violar restrição de stack já documentada no projeto.
+Pesquisa externa só quando o código não responde. Nunca busque "melhor prática" genérica — a
+resposta costuma violar restrição de stack já documentada no projeto.
 
 ## 3. Grade de suspeitas — só `bug`
 
@@ -62,13 +62,11 @@ evidência.
 A causa raiz é onde o comportamento correto deixou de valer, não onde o erro apareceu na
 tela. Prove com `arquivo:linha` e a condição de entrada que dispara.
 
-Não consegue provar: **não adivinhe**. Volte a investigar ou devolva ao usuário dizendo o que
-falta.
+Não consegue provar: **não adivinhe**. Volte a investigar, ou devolva dizendo o que falta.
 
 ## 5. Classificar e escolher o modo
 
-Classifique a mudança (legado puro ou contexto em evolução) conforme
-`referencias/plan-formato.md`, e derive o `modo_execucao` deste fluxo:
+Classifique a mudança conforme `referencias/plan-formato.md` e derive o `modo_execucao`:
 
 | Classificação e tamanho | Modo |
 |---|---|
@@ -76,7 +74,7 @@ Classifique a mudança (legado puro ou contexto em evolução) conforme
 | base viva, em mudança | `evolucao` |
 | legado puro, alto acoplamento | `legado` |
 
-O modo governa granularidade de tarefa e autonomia do executor. Em base legada a IA rende
+O modo governa granularidade da quebra e autonomia do executor. Em base legada a IA rende
 perto de zero quando decide sozinha — é por isso que o modo existe.
 
 ## 6. Comparar opções
@@ -93,37 +91,58 @@ do fluxo; não a tome sozinho — em nenhum modo.
 
 Formato em `referencias/plan-formato.md`. Grave direto, sem pedir confirmação.
 
-## 9. Criar a branch e commitar
+## 9. Quebrar em tarefas
+
+Uma tarefa = um comportamento observável = uma unidade de commit, com teste e implementação
+**juntos**. Em `tipo: bug`, a tarefa 1 é a do teste de regressão mais a correção.
+
+Grave `tasks/NN-titulo-curto.md` conforme `referencias/tarefa-formato.md` — regras de quebra,
+granularidade por modo e frontmatter estão lá. Preencha `arquivos` com os caminhos exatos e
+`criterios` com os `CA-n` que a tarefa fecha.
+
+A quebra **não toma decisão nova**. Faltou decisão: volte ao passo 6, não empurre para o
+executor — ele roda com contexto mínimo e não vai investigar.
+
+Antes de commitar: `sh .ia-kit/scripts/verificar-tarefas.sh <pasta-da-spec>`. Vermelho:
+corrija. Todo `CA-n` precisa de tarefa que o cubra.
+
+## 10. Criar a branch e commitar
 
 Peça ao `k-commit` a branch `<prefixo>/<slug>`, a partir da principal atualizada. O slug é o
-mesmo da pasta da spec, **sem o timestamp** — é assim que `k-task` e `k-execute` reencontram
-a spec. Automático, sem perguntar: as etapas seguintes precisam da branch de pé.
+mesmo da pasta da spec, **sem o timestamp** — é assim que o `k-execute` reencontra a spec.
+Automático, sem perguntar: a etapa seguinte precisa da branch de pé.
 
 Alteração local não commitada de outro trabalho: **pare e pergunte**. Sem `stash` automático.
 
-Depois, commite `spec.md` + `plan.md` via `k-commit`, mensagem `docs(spec): <titulo>`.
+Depois, commite `spec.md`, `plan.md` e `tasks/` via `k-commit`, mensagem
+`docs(spec): <titulo>`.
 
-## 10. Encerrar
+## 11. Encerrar
 
 ```
 Plano criado: <raiz>/<ts>-<slug>/plan.md
-Branch <prefixo>/<slug> criada.   Modo: <modo_execucao>
-Próximo passo: /k-task
+Branch <prefixo>/<slug> criada.   Modo: <modo_execucao>   Tarefas: <n>
+
+| # | Titulo | CA |
+|---|---|---|
+| 1 | <titulo> | CA-1, CA-2 |
+
+Próximo passo: /k-execute
 ```
 
-`execucao.encadeamento: automatico`: siga direto para o `k-task`. A quebra em tarefas não
-toma decisão nova, e roda em invocação separada só para não herdar o contexto de
-investigação desta etapa. `manual`: pare aqui.
+Pare aqui. O `k-execute` roda em invocação própria — uma tarefa por vez.
 
 ## Nunca
 
 - Alterar código de aplicação. O plano descreve; o `k-execute` implementa.
-- Quebrar em tarefas aqui.
+- Tomar decisão na quebra que o plano não tomou, ou criar tarefa que exija investigação — o
+  executor roda com contexto mínimo e não vai pesquisar.
+- Separar teste e implementação do mesmo comportamento em tarefas diferentes.
+- Fechar a quebra deixando `CA-n` sem tarefa.
 - Rodar `git` de escrita diretamente — sempre pelo `k-commit`.
 - Inventar camada nova em CRUD simples, consulta administrativa ou bugfix pequeno em área
   legada.
-- Misturar bugfix com refatoração. Melhoria que apareceu no caminho vai para `## Nao entra
-  neste trabalho`.
-- Propor versão de linguagem, framework ou biblioteca além do que o projeto já usa.
+- Misturar bugfix com refatoração, ou propor versão de linguagem e biblioteca além do que o
+  projeto já usa. Melhoria que apareceu no caminho vai para `## Nao entra neste trabalho`.
 - Transformar achado fora do escopo em item deste plano — vai para o modo desvio, e você
   volta ao passo 6 no ponto exato onde parou.

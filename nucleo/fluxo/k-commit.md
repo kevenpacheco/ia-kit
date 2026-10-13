@@ -6,6 +6,10 @@ pequeno, trabalho da IA fora do ciclo).
 
 Leituras que não mudam estado (`git status`, `git diff`, `git log`) não passam por aqui.
 
+Worktree descartável de injeção de falha também não: ela não cria branch, não commita e não
+publica nada. A lista fechada do que o `k-execute` pode rodar sozinho está em
+`referencias/injecao-falha.md`.
+
 Referências, carregadas só quando a etapa chegar:
 
 | Preciso de | Leia |
@@ -117,11 +121,18 @@ Pare aqui. Push, PR e merge são etapa separada, e só acontecem quando pedidos.
 branch protegida exige aprovação explícita para aquele PR — aprovação anterior não vale
 como permissão permanente.
 
+**Fluxo tem uma condição a mais:** confira `<pasta-do-fluxo>/verificacao.md` antes de
+empurrar. Ausente, ou `veredito: reprovado`: **não suba** e diga que falta a verificação. É
+leitura de artefato, não julgamento seu — quem julga é o verificador despachado no
+encerramento (`referencias/encerramento.md`). Uso avulso não tem
+fluxo e não tem o que conferir. Contrato sem `verificacao`: avise e siga.
+
 ## Nunca
 
 - Commitar em branch protegida.
 - `git add .`, `git add -A`, `--no-verify`, `--no-gpg-sign`.
 - Commitar com o gate vermelho.
 - Resolver conflito de merge sem perguntar.
+- Subir fluxo cujo `verificacao.md` não existe ou reprova.
 - Fazer merge sem aprovação explícita para aquele PR.
 - Inventar contexto de negócio que não recebeu.

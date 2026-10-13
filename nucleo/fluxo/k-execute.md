@@ -1,6 +1,6 @@
 # k-execute — executar uma tarefa
 
-Etapa 4 de 4: `k-spec` → `k-plan` → `k-task` → **k-execute**.
+Etapa 3 de 3: `k-spec` → `k-plan` → **k-execute**.
 
 **Regra central: uma tarefa por invocação.** Pega a próxima `pendente`, conclui, commita,
 para. Você reinvoca até acabar. É isso que impede o contexto de estourar e o padrão do
@@ -10,6 +10,8 @@ projeto de se perder no meio do caminho.
 |---|---|
 | gate e commit | delegue ao `k-commit` (`.ia-kit/fluxo/k-commit.md`) |
 | achado fora do escopo | `.ia-kit/referencias/desvio.md` |
+| provar que o teste discrimina | `.ia-kit/referencias/injecao-falha.md` |
+| encerrar e verificar o fluxo | `.ia-kit/referencias/encerramento.md` |
 | corpo do PR | `.ia-kit/referencias/pr-corpo.md` |
 | push, PR, merge | `.ia-kit/referencias/shipping.md` |
 
@@ -62,7 +64,27 @@ durante a execução.
 Tarefa que estoura quase sempre está mal quebrada. O sinal serve mais como diagnóstico da
 quebra do que como controle de custo.
 
-## 4. Fechar a tarefa
+## 4. Provar que o teste discrimina
+
+Confirmar o vermelho de olho depende do seu relato e não sobrevive à sessão. A injeção prova:
+reverte a implementação numa árvore descartável, mantém o teste novo, e confirma que ele fica
+vermelho **pela asserção** — não por erro de import.
+
+Obrigatória em `tipo: bug`, tarefa 1. Nos demais, `verificacao.injecao_falha`.
+
+- A árvore de trabalho real **nunca** é tocada: nada de `checkout`, `stash`, `reset`.
+- A corrida de controle vem antes de injetar. Árvore sem dependência deixa todo teste
+  vermelho, e aí toda prova "passa" — falsa no sentido otimista.
+- A limpeza roda em todos os caminhos, inclusive depois de falha.
+- Resultado no frontmatter (`injecao`) e em `## Prova de injecao` no corpo da tarefa.
+
+`falhou`: **não feche a tarefa** — o teste passaria sem a correção. Reescreva e injete de
+novo, dentro da mesma tarefa.
+
+Comandos exatos, lista fechada de git permitido e o que fazer com cada resultado:
+`referencias/injecao-falha.md`.
+
+## 5. Fechar a tarefa
 
 Commite via `k-commit`, passando os arquivos da tarefa mais o próprio arquivo da tarefa com
 `status: concluida`. O gate roda lá dentro — lint, testes dos arquivos tocados e segurança no
@@ -84,32 +106,26 @@ Commit: <tipo(escopo): descricao>
 Restam <k> tarefas. Próximo passo: /k-execute
 ```
 
-## 5. Encerramento — quando não resta tarefa
+## 6. Encerramento — quando não resta tarefa
 
-1. **Suite completa**, comando `comandos.suite` do contrato. Vermelha: pare e reporte, sem
-   push.
-2. **Marcar o fluxo**: `fluxo: concluido` no `spec.md` — significa tarefas fechadas e suite
-   verde, não "mergeado". Este é o último ponto em que dá para escrever dentro da história do
-   próprio fluxo: depois do merge a branch já foi deletada. Commite só esse arquivo,
-   mensagem `docs(spec): concluir <titulo>`.
-3. **Subir**, conforme `shipping.automatico` do contrato:
-   - `false`: pergunte se é hora de subir. Não: pare, tudo commitado localmente.
-   - `true`: siga sem perguntar, desde que as condições de `referencias/shipping.md` estejam
-     satisfeitas.
-4. **Alvo do PR**: `shipping.alvo_pr`, se preenchido. Vazio: pergunte, sem default fixo.
-5. **Título e corpo**: monte conforme `referencias/pr-corpo.md`. Este conteúdo é
-   responsabilidade desta etapa — o `k-commit` publica, não inventa.
-6. **Delegue ao `k-commit`**: push único, PR (draft se bater `shipping.pr_draft_quando`),
-   URL impressa. Merge só com aprovação explícita. Forja em modo manual
-   (`referencias/forja.md`): apresente corpo e comando de push prontos para copiar, e diga
-   que o PR não foi aberto.
-7. **Liste os stubs** que este fluxo gerou. Entram na fila do `/k-spec` quando o PR mergear.
+Sequência inteira em `referencias/encerramento.md`. Em resumo, nesta ordem:
 
-Depois do PR, comentário de revisor entra pelo `/k-revisao`.
+1. **Suite completa** (`comandos.suite`). Vermelha: pare, sem push.
+2. **Verificação independente.** Despache um verificador **sem o histórico desta sessão** —
+   você monta o contexto e registra, **não** emite o veredito. É porta, não opção.
+   `reprovado`: pare aqui, sem `fluxo: concluido`, sem push, sem PR.
+3. **Marcar** `fluxo: concluido` no `spec.md`, e commitar só esse arquivo.
+4. **Subir** conforme `shipping.automatico`: alvo, título e corpo do PR, e delegar o push ao
+   `k-commit`.
+5. **Listar os stubs** que este fluxo gerou.
+
+A ordem importa: verificar vem antes de marcar concluído, que vem antes de subir.
 
 ## Nunca
 
-- Rodar gate próprio ou `git` de escrita direto — tudo pelo `k-commit`.
+- Rodar gate próprio, ou `git` de escrita fora da lista fechada de `injecao-falha.md`.
+- Emitir você mesmo o veredito da verificação, ou subir sem ele.
+- Fechar tarefa com injeção `falhou`.
 - Commitar com teste vermelho.
 - Pular o gate "porque a mudança é pequena".
 - Pular tarefa `bloqueada`.

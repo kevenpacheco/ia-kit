@@ -148,13 +148,65 @@ ok "instalador presente"
 # O PowerShell 5.1 le .ps1 sem BOM como CP1252. Um em dash em UTF-8 (E2 80 94)
 # vira 'a-acento, euro, aspa-curva' - e a aspa curva fecha string, engolindo o
 # resto do script sem erro de sintaxe. Prosa acentuada fica nos .md.
-for ARQ in instalador/instalar.sh instalador/instalar.ps1 ci/verificar.sh; do
+#
+# Glob por diretorio, nao lista fixa: lista fixa exige que alguem lembre de
+# estender, e ja provou que nao escala. Script novo em nucleo/scripts/ nasce
+# coberto.
+#
+# `tr` em vez de `grep -qP`: -P e extensao GNU, e o nucleo proibe -P nos
+# proprios scripts. Usar aqui e proibir la ensinaria o padrao errado pelo
+# exemplo. `grep -q '[^ -~]'` seria a alternativa obvia e esta ERRADA: acusa
+# tab (09) e LF como fora de ASCII.
+for ARQ in instalador/instalar.sh instalador/instalar.ps1 ci/verificar.sh nucleo/scripts/*.sh; do
   [ -f "$ARQ" ] || continue
-  if LC_ALL=C grep -qP '[^\x00-\x7F]' "$ARQ" 2>/dev/null; then
+  if [ "$(LC_ALL=C tr -d '\000-\177' < "$ARQ" | wc -c | tr -d ' ')" -gt 0 ]; then
     falha "$ARQ tem caractere fora de ASCII"
   fi
 done
 ok "scripts so com ASCII"
+
+# --- 11. verificadores do nucleo -------------------------------------------
+# `sh -n` prova que o script parseia, nao que ele funciona. Para um *gate* isso
+# e perigoso: um script que sai 0 em tudo passa `sh -n` com louvor e e pior que
+# a prosa que ele substituiu, porque cria confianca falsa. Por isso cada um
+# roda tambem contra fixture boa e fixture ruim, e o exit code e conferido.
+for ARQ in nucleo/scripts/*.sh; do
+  [ -f "$ARQ" ] || continue
+  sh -n "$ARQ" || falha "$ARQ tem erro de sintaxe"
+  head -1 "$ARQ" | grep -q '^#!/bin/sh$' || falha "$ARQ sem shebang /bin/sh"
+done
+
+esperar() {
+  CODIGO="$1"; shift
+  sh "$@" >/dev/null 2>&1
+  OBTIDO=$?
+  if [ "$OBTIDO" -ne "$CODIGO" ]; then
+    falha "$* : esperava exit $CODIGO, obteve $OBTIDO"
+  fi
+}
+
+esperar 0 nucleo/scripts/verificar-contrato.sh     ci/exemplos/contrato-ok.yml nucleo/esquema.yml
+esperar 1 nucleo/scripts/verificar-contrato.sh     ci/exemplos/contrato-orfao.yml nucleo/esquema.yml
+esperar 3 nucleo/scripts/verificar-contrato.sh     ci/exemplos/contrato-ilegivel.yml nucleo/esquema.yml
+esperar 0 nucleo/scripts/verificar-spec.sh         ci/exemplos/spec-ok
+esperar 1 nucleo/scripts/verificar-spec.sh         ci/exemplos/spec-sem-ca
+esperar 0 nucleo/scripts/verificar-tarefas.sh      ci/exemplos/spec-ok
+esperar 1 nucleo/scripts/verificar-tarefas.sh      ci/exemplos/spec-sem-cobertura
+esperar 0 nucleo/scripts/verificar-verificacao.sh  ci/exemplos/spec-ok
+esperar 4 nucleo/scripts/verificar-verificacao.sh  ci/exemplos/spec-reprovada
+ok "verificadores: sintaxe e exit code contra fixture"
+
+# CRLF: checkout Windows com autocrlf grava CRLF, e o awk do Git Bash remove o
+# \r sozinho enquanto o mawk do Linux nao. Sem este teste, o gate passaria na
+# maquina de quem escreveu e falharia aqui - verde pelo motivo errado.
+CRLF=$(mktemp -d)
+cp -R ci/exemplos/spec-ok "$CRLF/spec"
+find "$CRLF/spec" -type f -exec sh -c 'sed -i "s/\$/\r/" "$1"' _ {} \;
+esperar 0 nucleo/scripts/verificar-spec.sh        "$CRLF/spec"
+esperar 0 nucleo/scripts/verificar-tarefas.sh     "$CRLF/spec"
+esperar 0 nucleo/scripts/verificar-verificacao.sh "$CRLF/spec"
+rm -rf "$CRLF"
+ok "verificadores: CRLF tratado igual a LF"
 
 # --- resultado -------------------------------------------------------------
 printf '\n'

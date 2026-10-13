@@ -1,0 +1,61 @@
+kit_versao: 2.1.0          # versão do núcleo que gerou este contrato
+kit_origem: https://github.com/kevenpacheco/ia-kit   # de onde atualizar
+ferramentas: [claude-code]         # shims gerados: claude-code | agents-md | cursor
+
+projeto:
+  nome: <string>
+  stack: <string curto>            # ex.: "TypeScript, Next.js, Postgres"
+
+specs:
+  raiz: docs/specs                 # onde vivem as pastas de spec
+
+comandos:                          # vazio = skill pergunta na hora de usar
+  lint: <cmd>
+  formato: <cmd>                   # opcional
+  teste_unit: <cmd>
+  teste_integracao: <cmd>          # opcional
+  suite: <cmd>                     # roda tudo; usado no encerramento do fluxo
+  seguranca: <cmd>                 # varredura completa
+  seguranca_diff: <cmd>            # varredura incremental; {base} e {arquivos} são
+                                   # substituídos na hora. Vazio = gate cai para completa
+
+git:
+  forja: github                    # github | gitlab | bitbucket | azure | nenhuma
+  branch_principal: main
+  branches_protegidas: [main]
+  prefixos:
+    feature: feat
+    bug: fix
+    refactor: refactor
+    chore: chore
+    docs: docs
+
+execucao:
+  modo_padrao: evolucao            # greenfield | evolucao | legado
+  encadeamento: automatico         # automatico | manual — ver "Encadeamento"
+  tentativas_gate: 2
+  limites_tarefa:                  # sinais observáveis; estourou, para e devolve
+    arquivos_lidos: 40
+    rodadas_ferramenta: 60
+    minutos: 20
+  limiar_promocao:                 # acima disso, k-commit sugere abrir um fluxo
+    arquivos: 5
+    linhas: 150
+
+commit:
+  idioma: pt-BR
+  atribuicao_ia: false             # true libera rodapé de IA na mensagem
+  revisao_subagente: por_limiar    # sempre | por_limiar | nunca
+  revisao_limiar:
+    arquivos: 3
+    linhas: 80
+
+shipping:
+  automatico: false                # true: push + PR ao encerrar o fluxo, sem perguntar
+  alvo_pr: main                    # base do PR; vazio faz perguntar a cada vez
+  pr_draft_quando: [achado_aberto, modo_legado]
+  merge: manual                    # nunca automático
+
+modelos:                           # aplicado onde a ferramenta permite; ver "Modelos"
+  forte: <id ou alias>             # k-plan, k-execute
+  barato: <id ou alias>            # k-scan, sumarização, refutação, busca

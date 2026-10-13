@@ -18,7 +18,7 @@ modo_execucao: greenfield | evolucao | legado
 ```
 
 `modo_execucao` sai da classificação desta etapa e governa o resto do fluxo: granularidade
-das tarefas no `k-task` e quanto o `k-execute` decide sozinho. Ele sobrescreve, para este
+da quebra em tarefas e quanto o `k-execute` decide sozinho. Ele sobrescreve, para este
 fluxo, o `execucao.modo_padrao` do contrato.
 
 ## Corpo

@@ -1,6 +1,6 @@
 # Modo desvio — achado fora do escopo
 
-Qualquer etapa do fluxo (`k-spec`, `k-plan`, `k-task`, `k-execute`, `k-scan`) que topa com um
+Qualquer etapa do fluxo (`k-spec`, `k-plan`, `k-execute`, `k-scan`) que topa com um
 problema fora do escopo do trabalho em andamento grava um **stub** e devolve o controle no
 ponto exato onde parou.
 
@@ -43,7 +43,7 @@ titulo: <curto, gerado do sintoma>
 tipo:
 fluxo: pendente
 criado_em: <AAAA-MM-DD HH:MM:SS>
-origem_etapa: k-spec | k-plan | k-task | k-execute | k-scan
+origem_etapa: k-spec | k-plan | k-execute | k-scan
 origem_spec: <slug da spec em andamento; vazio quando veio do k-scan>
 origem_task: <NN-slug da tarefa; vazio quando não veio do k-execute>
 origem_commit: <SHA curto do HEAD no momento do desvio>
@@ -103,7 +103,7 @@ Só o `k-execute` distingue isso, pela evidência do gate:
 
 | Saída | O que acontece |
 |---|---|
-| Absorver no escopo atual | stub vira `descartado` apontando quem absorveu; volta ao `/k-plan` e `/k-task` |
+| Absorver no escopo atual | stub vira `descartado` apontando quem absorveu; volta ao `/k-plan` |
 | Inverter a prioridade | grava `depende_de: <slug>` na spec deste fluxo; o desvio vira o próximo trabalho |
 
 **Não decida sozinho.** Alargar escopo é decisão do usuário.

@@ -26,7 +26,9 @@ Condições, todas obrigatórias:
 
 1. Todas as tarefas do fluxo fechadas.
 2. Suite completa verde.
-3. Um PR por fluxo. Nunca um PR por tarefa — é essa regra que impede a fila de review de
+3. Verificação independente com veredito `aprovado` ou `aprovado-com-ressalva` em
+   `verificacao.md` da rodada atual. Contrato sem `verificacao`: avisa e segue.
+4. Um PR por fluxo. Nunca um PR por tarefa — é essa regra que impede a fila de review de
    estourar.
 
 Qualquer condição falhando: pare e pergunte, como se `automatico` fosse `false`.
@@ -45,6 +47,9 @@ de revisão em paralelo, um por eixo — convenções do projeto, aderência ao 
 simplificação e reuso.
 
 Branch só de documentação: não dispare. Cada commit já passou pelo gate.
+
+Fluxo com `verificacao.md` da rodada atual: **não dispare**. A verificação já olhou o mesmo
+range com critério e evidência; repetir aqui é pagar duas vezes pelo mesmo diff.
 
 Informativa, não bloqueante. Mostre os achados junto do resumo e siga.
 
@@ -75,6 +80,7 @@ Abra como draft quando bater qualquer item de `shipping.pr_draft_quando`:
 | `achado_aberto` | a revisão automatizada levantou algo que não foi resolvido |
 | `modo_legado` | `execucao.modo_padrao: legado` — base de alto acoplamento |
 | `suite_instavel` | suite passou, mas com teste intermitente conhecido |
+| `verificacao_ressalva` | a verificação aprovou com ressalva não resolvida |
 
 Draft não entra na fila do revisor. Ele decide quando olhar, em vez de ser convocado para
 um trabalho que ainda tem ponta solta.

@@ -93,6 +93,22 @@ e avise que o `k-execute` vai cobrar em toda invocação.
 **Origem do kit:** recomende `https://github.com/kevenpacheco/ia-kit` e só pergunte se o
 projeto usa espelho interno. Ver `instalacao.md`.
 
+
+**Verificacao** (o fluxo nao fecha sem veredito de subagente independente):
+
+| Campo | Recomendacao | Trade-off |
+|---|---|---|
+| `verificacao.perfil` | `padrao` | `rapido` nao executa nada e nao pega teste que nao roda; `rigoroso` reexecuta a injecao e custa uma suite por tarefa provada |
+| `verificacao.rodadas_max` | `2` | Acima disso o agente conserta ate passar, e a verificacao vira teatro |
+| `verificacao.injecao_falha` | `obrigatoria_bug` | `sempre` costuma devolver `nao_executada` em serie fora de bug; `nunca` devolve a prova ao relato do autor |
+| `verificacao.preparar_arvore` | o que a stack exige para rodar teste numa copia limpa | Vazio faz a corrida de controle reprovar a arvore, e toda prova sai `nao_executada` |
+| `execucao.verificadores` | `obrigatorio` onde `sh` existe | `quando_disponivel` avisa e segue; `desligado` silencia a divida |
+
+Teste `preparar_arvore` como se testa `seguranca_diff`: rode numa `git worktree` descartavel
+antes de gravar. Comando que nao prepara a arvore faz toda prova sair inconclusiva.
+
+Contrato sem `verificacao.*` e contrato de kit anterior a 2.1.0 — pergunte, nao assuma.
+
 **Na atualização, não reabra o que já foi respondido.** Pergunte só o campo novo ou o campo
 cujo significado mudou na versão. Entrevista repetida do zero é o jeito mais rápido de
 ensinar o time a nunca atualizar o kit.

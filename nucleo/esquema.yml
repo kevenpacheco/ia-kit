@@ -14,9 +14,9 @@ campos:
                         valores: [claude-code, agents-md, cursor]}
 
   projeto.nome:        {obrigatorio: true,  tipo: string,  usado_por: [k-commit, k-execute]}
-  projeto.stack:       {obrigatorio: true,  tipo: string,  usado_por: [k-plan, k-task]}
+  projeto.stack:       {obrigatorio: true,  tipo: string,  usado_por: [k-plan]}
 
-  specs.raiz:          {obrigatorio: true,  tipo: caminho, usado_por: [k-spec, k-plan, k-task, k-execute, k-scan]}
+  specs.raiz:          {obrigatorio: true,  tipo: caminho, usado_por: [k-spec, k-plan, k-execute, k-scan]}
 
   comandos.lint:           {obrigatorio: true,  tipo: comando, usado_por: [k-commit]}
   comandos.formato:        {obrigatorio: false, tipo: comando, usado_por: [k-commit]}
@@ -43,6 +43,8 @@ campos:
   execucao.tentativas_gate: {obrigatorio: true, tipo: inteiro, usado_por: [k-commit, k-execute]}
   execucao.limites_tarefa: {obrigatorio: true,  tipo: mapa,    usado_por: [k-execute],
                             chaves: [arquivos_lidos, rodadas_ferramenta, minutos]}
+  execucao.verificadores:  {obrigatorio: false, tipo: enum,    usado_por: [k-init],
+                            valores: [obrigatorio, quando_disponivel, desligado]}
   execucao.limiar_promocao: {obrigatorio: true, tipo: mapa,    usado_por: [k-commit],
                             chaves: [arquivos, linhas]}
 
@@ -53,10 +55,17 @@ campos:
   commit.revisao_limiar:   {obrigatorio: false, tipo: mapa,    usado_por: [k-commit],
                             chaves: [arquivos, linhas]}
 
+  verificacao.perfil:      {obrigatorio: false, tipo: enum,    usado_por: [k-execute],
+                            valores: [rapido, padrao, rigoroso]}
+  verificacao.rodadas_max: {obrigatorio: false, tipo: inteiro, usado_por: [k-execute]}
+  verificacao.injecao_falha: {obrigatorio: false, tipo: enum,  usado_por: [k-execute],
+                            valores: [obrigatoria_bug, sempre, nunca]}
+  verificacao.preparar_arvore: {obrigatorio: false, tipo: comando, usado_por: [k-execute, k-init]}
+
   shipping.automatico:     {obrigatorio: true,  tipo: booleano, usado_por: [k-execute]}
   shipping.alvo_pr:        {obrigatorio: false, tipo: string,  usado_por: [k-execute]}
   shipping.pr_draft_quando: {obrigatorio: true, tipo: lista,   usado_por: [k-commit],
-                            valores: [achado_aberto, modo_legado, suite_instavel]}
+                            valores: [achado_aberto, modo_legado, suite_instavel, verificacao_ressalva]}
   shipping.merge:          {obrigatorio: true,  tipo: enum,    usado_por: [k-commit],
                             valores: [manual]}
 

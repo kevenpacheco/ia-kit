@@ -1,6 +1,6 @@
 ---
 name: k-execute
-description: Etapa 4 do fluxo. Executa UMA tarefa pendente por invocação com ciclo TDD dentro da tarefa, delega gate e commit ao k-commit e marca a tarefa como concluída. Na última tarefa roda a suite completa, marca o fluxo como concluído e conduz push e PR conforme o contrato. Use depois do k-task.
+description: Etapa 3 e final do fluxo. Executa UMA tarefa pendente por invocacao com ciclo TDD dentro da tarefa, prova que o teste discrimina (injecao de falha em worktree descartavel), delega gate e commit ao k-commit e marca a tarefa como concluida. Sem tarefa pendente, encerra: suite completa, verificacao independente por subagente fresco contra os criterios de aceite, e so entao push e PR. Use depois de /k-plan.
 ---
 
 Leia `.ia-kit/fluxo/k-execute.md` e siga exatamente o que está lá.

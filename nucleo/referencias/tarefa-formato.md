@@ -24,6 +24,8 @@ tipo: fix
 status: pendente
 motivo:
 skill: <skill tática do projeto, se houver uma aplicável>
+criterios: [CA-1, CA-2]
+injecao: nao_executada
 arquivos:
   - caminho/relativo/do/arquivo.ext
   - caminho/relativo/do/teste.ext
@@ -39,6 +41,8 @@ arquivos:
 | `motivo` | vazio; o `k-execute` preenche ao bloquear (falha no gate, ou `bloqueada por <slug>`) |
 | `skill` | skill tática do projeto que casa com a natureza da **implementação**. Vazia se nenhuma casar |
 | `arquivos` | os arquivos exatos que a tarefa pode tocar, **incluindo os de teste** |
+| `criterios` | os `CA-n` da spec que esta tarefa fecha. Lista vazia só em tarefa sem comportamento novo: doc, chore, refactor puro, migração |
+| `injecao` | `aprovada` | `falhou` | `nao_executada` | `nao_aplicavel`. Nasce `nao_executada`; o `k-execute` preenche. Ver `injecao-falha.md` |
 
 ## Corpo
 
@@ -62,6 +66,12 @@ Resultado esperado. Os comandos saem do contrato do projeto, não daqui.
 Para cada ciclo, nesta ordem: escreva o teste, rode e confirme que falha **pelo motivo
 certo**, só então implemente até passar. O vermelho existe dentro da tarefa e nunca vira
 commit.
+
+## Prova de injecao
+Ancora: <sha curto>          Arvore: descartada em <AAAA-MM-DD HH:MM:SS>
+Testes injetados: `caminho/do/teste.ext`
+Controle (sem o teste novo): verde    - `<linha decisiva>`
+Injecao (com o teste novo):  vermelho - `<linha decisiva da assercao>`
 
 ## Contexto necessario
 `arquivo:linha` que o executor precisa ler antes de editar, e por quê. Referencie a seção do
@@ -92,3 +102,44 @@ Olhe as skills do projeto e escolha **uma** que case com a natureza da implement
 de dados, apresentação, documentação, refatoração. Não aponte skill de teste só porque a
 tarefa tem testes — toda tarefa de comportamento tem, e o TDD já está em `## Ciclos TDD`.
 Nenhuma casou: deixe vazio, e o executor segue o padrão existente no arquivo.
+
+## Quebra: como dividir
+
+**Uma tarefa = um comportamento observável = uma unidade de commit.**
+
+Quem quebra é o `k-plan`, depois de a opção técnica estar escolhida. A quebra não toma
+decisão nova: se falta decisão, o plano está incompleto e volta um passo.
+
+**Teste e implementação do mesmo comportamento ficam na mesma tarefa.** Nunca separe
+"escrever o teste" de "fazer o teste passar": isso commita suite vermelha, que é exatamente
+o que este fluxo evita.
+
+Dentro da tarefa: teste que falha → implementação mínima (dados e regra → controller → view,
+só as camadas que o comportamento exige) → refactor. **Termina verde.**
+
+Entre tarefas: ordem por dependência de comportamento. Documentação por último.
+
+Em `tipo: bug`, a **tarefa 1 é sempre a que contém o teste de regressão e a correção** —
+falha no início, passa no fim. Exceção única: o plano registrou
+`## Sem teste automatizado`.
+
+### Tamanho
+
+- Não cabe num commit pequeno e focado: quebre.
+- Quebre por comportamento, **nunca por camada**.
+- Sem teto de ciclos por tarefa. O limite é o comportamento, não a contagem de testes.
+
+Tarefa sem comportamento novo — doc, chore, refactor puro, migração — é tarefa própria e
+**não** ganha teste novo. A regra é *toda tarefa termina verde*, não *toda tarefa tem teste*.
+
+### Cobertura dos critérios
+
+Todo `CA-n` da spec precisa aparecer no `criterios` de alguma tarefa. Sobrou critério sem
+tarefa: ou a quebra tem buraco, ou o critério não pertence à spec — nos dois casos volte uma
+etapa, nunca siga em silêncio.
+
+Confira antes de commitar:
+
+```
+sh .ia-kit/scripts/verificar-tarefas.sh <pasta-da-spec>
+```

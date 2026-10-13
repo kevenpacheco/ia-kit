@@ -1,6 +1,6 @@
 # k-scan — procurar bug sem sintoma
 
-Etapa **opcional**, antes do fluxo: `k-scan` → `k-spec` → `k-plan` → `k-task` → `k-execute`.
+Etapa **opcional**, antes do fluxo: `k-scan` → `k-spec` → `k-plan` → `k-execute`.
 
 Entrega uma lista curta de bugs **provados**, cada um com caminho de execução concreto, para
 você escolher quais viram trabalho. Falso positivo custa mais que bug perdido.

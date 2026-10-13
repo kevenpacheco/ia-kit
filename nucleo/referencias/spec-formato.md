@@ -93,7 +93,8 @@ O que precisa ser sempre verdade, independente do caminho.
 
 ## Critérios de aceite
 Lista verificável, cada item comprovável por teste ou observação.
-- [ ] ...
+- [ ] CA-1 ...
+- [ ] CA-2 ...
 
 ## Premissas
 O que foi assumido sem confirmação. Omita a seção se não houver nada.
@@ -120,11 +121,26 @@ Teste, passos numerados, ou `Não reproduzido` com o caminho de execução.
 Quem sofre, com qual frequência, e o que se perde.
 
 ## Critérios de aceite
-- [ ] ...
+- [ ] CA-1 ...
 
 ## Premissas
 Omita a seção se não houver nada.
 ```
+
+## Identificador de critério
+
+Cada critério de aceite nasce com um identificador estável: `CA-1`, `CA-2`, na ordem em que
+aparecem. O identificador é o que liga o critério à tarefa que o cobre (`criterios` no
+frontmatter da tarefa) e ao veredito do verificador do encerramento.
+
+Duas regras, as duas com a mesma razão — identificador que se move quebra a razão de
+cobertura e faz o verificador aprovar critério errado:
+
+- **Nunca renumere.** Critério removido deixa o número vago; o próximo entra com o número
+  seguinte ao maior já usado.
+- **Nunca reaproveite.** `CA-2` removido não volta como outro critério.
+
+Critério novo descoberto depois do `k-plan` entra pelo fim da lista, nunca no meio.
 
 ## Raiz de specs
 

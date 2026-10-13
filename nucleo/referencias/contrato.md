@@ -50,6 +50,7 @@ execucao:
     arquivos_lidos: 40
     rodadas_ferramenta: 60
     minutos: 20
+  verificadores: quando_disponivel  # obrigatorio | quando_disponivel | desligado
   limiar_promocao:                 # acima disso, k-commit sugere abrir um fluxo
     arquivos: 5
     linhas: 150
@@ -62,10 +63,16 @@ commit:
     arquivos: 3
     linhas: 80
 
+verificacao:
+  perfil: padrao                   # rapido | padrao | rigoroso
+  rodadas_max: 2                   # teto de rodadas de reprovacao
+  injecao_falha: obrigatoria_bug   # obrigatoria_bug | sempre | nunca
+  preparar_arvore: <cmd>           # roda na arvore descartavel antes da injecao
+
 shipping:
   automatico: false                # true: push + PR ao encerrar o fluxo, sem perguntar
   alvo_pr: main                    # base do PR; vazio faz perguntar a cada vez
-  pr_draft_quando: [achado_aberto, modo_legado]
+  pr_draft_quando: [achado_aberto, modo_legado, verificacao_ressalva]
   merge: manual                    # nunca automático
 
 modelos:                           # aplicado onde a ferramenta permite; ver "Modelos"
@@ -83,7 +90,7 @@ modelos:                           # aplicado onde a ferramenta permite; ver "Mo
 | `kit_origem` | sim | `k-init` | ninguém sabe de onde atualizar |
 | `ferramentas` | sim | `k-init` | shim não é regenerado |
 | `projeto.nome` | sim | corpo de PR, commit | pergunta |
-| `projeto.stack` | sim | `k-plan`, `k-task` | pergunta |
+| `projeto.stack` | sim | `k-plan` | pergunta |
 | `specs.raiz` | sim | todo o fluxo | pergunta |
 | `comandos.lint` | sim | gate 1 | gate para |
 | `comandos.teste_unit` | sim | gate 2 | gate para |
@@ -102,62 +109,41 @@ modelos:                           # aplicado onde a ferramenta permite; ver "Mo
 | `commit.idioma` | sim | `k-commit` | assume `pt-BR` |
 | `commit.atribuicao_ia` | sim | `k-commit` | assume `false` |
 | `commit.revisao_subagente` | sim | `k-commit` | assume `por_limiar` |
+| `execucao.verificadores` | nao | `k-init` | assume `quando_disponivel` |
+| `verificacao.perfil` | nao | `k-execute` | assume `padrao` |
+| `verificacao.rodadas_max` | nao | `k-execute` | assume 2 |
+| `verificacao.injecao_falha` | nao | `k-execute` | assume `obrigatoria_bug` |
+| `verificacao.preparar_arvore` | nao | `k-execute` | a corrida de controle decide |
 | `shipping.automatico` | sim | `k-execute` | assume `false` — pergunta antes de subir |
 | `shipping.alvo_pr` | não | `k-execute` | pergunta o alvo a cada PR |
 | `shipping.pr_draft_quando` | sim | `k-commit` | PR nunca sai como draft |
 | `shipping.merge` | sim | `k-commit` | assume `manual` |
-| `modelos.forte` / `modelos.barato` | não | roteamento | usa o modelo da sessão |
+| `modelos.forte` / `modelos.barato` | nao | roteamento | usa o modelo da sessao. Limite de aplicacao: D7 |
 
-### `comandos.seguranca`
+### `comandos.seguranca` e `comandos.seguranca_diff`
 
-Campo vazio não é neutro. Sem gate de segurança, código gerado por IA entra no repositório
-com cerca de 44% de chance de carregar uma vulnerabilidade — é a lacuna que a decisão D10
-existe para fechar. Quando o `k-init` não encontra ferramenta instalada, ele registra:
-
-```yaml
-comandos:
-  seguranca: ""
-  seguranca_pendente: "nenhuma ferramenta detectada em <data>"
-```
-
-O `k-commit` então **avisa em toda invocação** até o campo ser preenchido. Ele não bloqueia o
-trabalho — bloquear o fluxo inteiro por falta de ferramenta empurraria o time a remover o
-gate. Avisar de forma persistente mantém a dívida visível.
-
-Candidatos por stack e modelos de invocação incremental: `gate.md`.
-
-### `comandos.seguranca_diff`
-
-Campo próprio porque varredura completa leva minutos e faz o gate ser desligado, enquanto a
-incremental leva segundos e sobrevive ao uso diário. O `k-init` testa se a ferramenta
-detectada sabe operar assim antes de gravar.
-
-Placeholders substituídos na hora: `{base}` e `{arquivos}`. Vazio: o gate cai para varredura
-completa e avisa o custo.
+Campo vazio não é neutro: sem gate de segurança o código entra com a taxa de vulnerabilidade
+que a D10 existe para atacar. Vazio, o `k-init` grava `seguranca_pendente` com a data e o
+`k-commit` avisa em toda invocação, sem bloquear. `seguranca_diff` é campo próprio porque a
+varredura completa leva minutos e é desligada; a incremental leva segundos. Placeholders
+`{base}` e `{arquivos}`. Candidatos, invocação incremental e triagem dos achados: `gate.md`.
 
 ### `execucao.limites_tarefa`
 
 Sinais **observáveis** de tarefa fora de controle: arquivos lidos, rodadas de ferramenta,
-minutos. Não é contagem de token — o agente não lê o próprio consumo de forma confiável
-durante a execução, e regra que ninguém consegue cumprir ensina a ignorar regras.
-
-Estourou qualquer um: para, registra qual sinal estourou e devolve. Tarefa que estoura quase
-sempre está mal quebrada, e o sinal é mais útil como diagnóstico da quebra do que como
-controle de custo.
-
-O custo em dinheiro entra depois, no relatório de fechamento, a partir do que a ferramenta
-reportar. Retrospectivo e confiável vale mais que preditivo e inventado.
+minutos. Não é contagem de token — o agente não lê o próprio consumo de forma confiável.
+Estourou qualquer um: para e devolve. Por que estes três sinais, e não outros: D8.
 
 ### `execucao.encadeamento`
 
 | Valor | Efeito |
 |---|---|
-| `automatico` | `k-spec` → `k-plan` → `k-task` seguem sem perguntar. As paradas que sobram são as decisões reais: entrevista da spec e escolha da opção técnica |
+| `automatico` | `k-spec` → `k-plan` seguem sem perguntar. As paradas que sobram são as decisões reais: entrevista da spec e escolha da opção técnica |
 | `manual` | cada etapa para no fim e informa a próxima |
 
-Campo único, lido pelas duas etapas. O modo de execução (`greenfield`/`legado`) governa
-granularidade e autonomia; **não** governa encadeamento. Misturar os dois fazia o `k-spec`
-decidir com base num modo que só o `k-plan` define.
+Campo único, lido pelas duas etapas. O modo de execução governa granularidade e autonomia;
+**não** governa encadeamento — misturar os dois fazia o `k-spec` decidir com base num modo
+que só o `k-plan` define.
 
 ### `commit.revisao_subagente`
 
@@ -167,17 +153,31 @@ decidir com base num modo que só o `k-plan` define.
 | `por_limiar` | diff de código acima de `commit.revisao_limiar` |
 | `nunca` | desligada |
 
-Padrão `por_limiar`. Revisão por subagente é o segundo maior consumo do kit, depois do
-`k-scan`, e num diff de três linhas ela quase sempre repete o que lint e testes já disseram.
-O limiar existe para gastar o subagente onde ele tem chance de achar algo que o gate não
-acha.
+Padrão `por_limiar`. É o segundo maior consumo do kit, depois do `k-scan`, e num diff de três
+linhas repete o que lint e testes já disseram. Não confunda com `verificacao`, abaixo.
 
-### `modelos`
+---
+### `verificacao`
 
-Aplicado onde a ferramenta permite: subagente costuma aceitar modelo próprio, a etapa
-principal nem sempre. Onde não dá para impor, vale como recomendação registrada — e a
-economia só é afirmada depois de aparecer no baseline.
+Verificação **não é** `commit.revisao_subagente`. Confundir os dois é o erro de configuração
+mais provável desta versão:
 
+| | `commit.revisao_subagente` | `verificacao` |
+|---|---|---|
+| Quando | a cada commit | uma vez, no fim do fluxo |
+| Contra o quê | convenções, simplificação, reuso | os critérios de aceite da spec |
+| Quem julga | subagente no contexto do autor | subagente **sem** a sessão do autor |
+| Efeito | informativo | **bloqueia** push e PR |
+
+O veredito sai sempre de subagente fresco: skill roda na mesma conversa de quem escreveu o
+código, e sem o despacho "verificação independente" é auto-avaliação com outro nome.
+
+`verificacao` ausente — kit anterior à 2.1.0 — faz a verificação **rodar e avisar, sem
+bloquear**, até o `k-init` gravar os campos. Mesmo precedente de `comandos.seguranca` vazio.
+
+Perfis e formato do relatório: `verificacao-formato.md`. Injeção de falha:
+`injecao-falha.md`. Encerramento e protocolo do verificador: `encerramento.md`. `sh`
+ausente: `verificadores.md`.
 ---
 
 ## Validação, precedência e migração
@@ -190,8 +190,6 @@ fluxo. Comando que roda e sai diferente de zero é válido — o projeto é que 
 Precedência: contrato → convenção documentada do projeto → padrão do núcleo. Nada abaixo
 sobrescreve o que está acima.
 
-`kit_versao` diferente de `.ia-kit/VERSAO`: modo atualização, com diff campo a campo,
-confirmação, e as respostas anteriores preservadas. O esquema legível por máquina está em
-`.ia-kit/esquema.yml`, e é contra ele que o `k-init` confere campo órfão, campo ausente e
-campo removido. O que cada bump de versão promete, e o que o instalador preserva:
-`instalacao.md`.
+`kit_versao` diferente de `.ia-kit/VERSAO`: modo atualização, com diff campo a campo e as
+respostas anteriores preservadas. Quem confere o contrato contra `.ia-kit/esquema.yml` é o
+`verificar-contrato.sh`. O que cada bump promete: `instalacao.md`.

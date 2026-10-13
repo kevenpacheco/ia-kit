@@ -1,6 +1,6 @@
 # k-spec — contrato de comportamento
 
-Etapa 1 de 4: **k-spec** → `k-plan` → `k-task` → `k-execute`.
+Etapa 1 de 3: **k-spec** → `k-plan` → `k-execute`.
 
 Produz o `spec.md`: o que muda e por quê. Nunca como corrigir nem onde a regra vai morar —
 isso é do `k-plan`.
@@ -80,7 +80,7 @@ Escada, do mais forte ao mais fraco. Pare no primeiro degrau que funcionar.
 
 1. **Teste automatizado** — bug alcançável por lógica pura: escreva um teste descartável que
    falhe, rode filtrando só o caso novo, cole a **linha decisiva** na spec. Apague depois; o
-   teste definitivo é do `k-task`.
+   teste definitivo é da tarefa, escrita no `k-plan`.
 2. **Passos manuais** — depende de interação, sessão ou estado externo: passos numerados que
    qualquer pessoa consiga seguir, com o resultado errado no último.
 3. **Não reproduzido** — registre assim e descreva o caminho de execução com `arquivo:linha`
@@ -92,6 +92,13 @@ Nunca invente passo que você não executou nem verificou no código.
 
 Formato em `referencias/spec-formato.md`. Grave direto, **sem pedir confirmação**, e não
 despeje o conteúdo no chat — informe só o caminho.
+
+Critérios saem com identificador `CA-n`, **um critério por afirmação falsificável**.
+Critério que junta dois comportamentos com "e" vira dois: senão o verificador não consegue
+dar veredito, só "parcialmente".
+
+Depois de gravar: `sh .ia-kit/scripts/verificar-spec.sh <pasta-da-spec>`. Vermelho: corrija
+antes de encerrar.
 
 ## 8. Encerrar
 
@@ -111,5 +118,6 @@ pare aqui.
 - Criar branch, commitar ou alterar código. O `spec.md` fica untracked até o `k-plan`.
 - Criar spec de "cheiro" de código como `bug`. Código feio que funciona é `refactor`.
 - Deixar teste descartável de reprodução entrar em commit.
+- Escrever critério que junta dois comportamentos — não dá para dar veredito.
 - Transformar achado fora do escopo em seção extra desta spec ou em pergunta da entrevista —
   vai para o modo desvio.

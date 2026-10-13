@@ -1,6 +1,6 @@
 ---
 name: k-plan
-description: Etapa 2 do fluxo. Lê o spec.md, investiga o código com subagentes de leitura, prova a causa raiz quando é bug, classifica a mudança, compara opções com você e escreve plan.md, criando a branch do trabalho. Use depois do k-spec.
+description: Etapa 2 do fluxo. Le o spec.md, investiga o codigo com subagentes de leitura, prova a causa raiz em bug, classifica a mudanca, compara opcoes reais e espera a escolha do usuario. Depois grava plan.md, quebra em tarefas (tasks/NN-*.md, uma por comportamento observavel, com teste e implementacao juntos), cria a branch e commita spec, plano e tarefas. Use depois de /k-spec.
 ---
 
 Leia `.ia-kit/fluxo/k-plan.md` e siga exatamente o que está lá.

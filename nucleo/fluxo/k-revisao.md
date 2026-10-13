@@ -65,7 +65,7 @@ faz o fluxo desfazer uma decisão registrada sem ninguém perceber.
 ## 5. Gravar
 
 - `mudanca` → uma tarefa por comportamento em `tasks/NN-*.md`, seguindo a anatomia de tarefa
-  do `k-task`. Registre o número do comentário no corpo, para fechar o thread depois.
+  de `tarefa-formato.md`. Registre o número do comentário no corpo, para fechar o thread.
 - `fora-de-escopo` → stub de spec (`fluxo: pendente`), como no modo desvio. **Não** entra de
   carona neste PR.
 - `duvida` → rascunho de resposta, apresentado ao usuário. Nada é publicado sem aprovação:
@@ -84,6 +84,8 @@ Próximo passo: /k-execute
 O `k-execute` roda tarefa a tarefa, cada commit com o gate. No fim, push incremental
 atualiza o PR — **commits novos, nunca force-push**, senão os comentários do revisor ficam
 órfãos.
+
+O encerramento do `k-execute` reverifica: verificador novo, nunca o da rodada anterior.
 
 Thread só é marcado como resolvido depois que a correção está commitada e empurrada. Marcar
 antes transforma a revisão em teatro.
