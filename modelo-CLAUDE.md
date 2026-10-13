@@ -1,82 +1,55 @@
-## 1. Contexto do Projeto
+# CLAUDE.md
 
-> Preencha por projeto. Substitua os placeholders abaixo.
+> Modelo do ia-kit. Copie para a raiz do projeto como `CLAUDE.md` (ou `AGENTS.md`) e preencha os campos `<...>`.
+> Este arquivo é carregado em toda sessão: mantenha aqui só o que vale sempre. Procedimentos de cada fase ficam nas skills (`.claude/skills/`), carregadas sob demanda.
 
-- **Projeto:** `<nome do projeto>`
-- **Descrição:** `<descrição curta: o que é e qual problema resolve>`
-- **Stack principal:** `<linguagens, frameworks, banco de dados>`
+## 1. Visão Geral e Princípios
+Este repositório adota o modelo **Spec-Lean (Spec-Driven + Progressive Disclosure)** com revisão por **subagentes** e sensores **determinísticos**.
 
----
-
-## 2. Regras Gerais
-
-Estas regras são **inegociáveis** e se aplicam a qualquer tarefa, em qualquer projeto.
-
-### 2.1. Pense antes de codar
-- **Declare suas presunções explicitamente** antes de escrever qualquer código.
-- Se houver **incerteza**, **ambiguidade**, **conflitos**, **pergunte**. Nunca adivinhe.
-- Não inicie a implementação enquanto o objetivo e o escopo não estiverem claros.
-
-### 2.2. Simplicidade primeiro
-- Use o **mínimo de código possível** para resolver o problema.
-- Priorize sempre **legibilidade** e **manutenibilidade** sobre esperteza.
-- Não adicione abstrações, camadas ou generalizações que o problema atual não exige (YAGNI).
-
-### 2.3. Mudanças cirúrgicas
-- Altere **apenas o necessário** para cumprir o objetivo.
-- Não refatore, renomeie ou reformate código fora do escopo da tarefa sem permissão.
-- Mantenha os diffs pequenos e revisáveis.
-
-### 2.4. Use o máximo de subagentes possível
-- Sempre que a tarefa permitir paralelização, use o **máximo de subagentes possível** para executá-la.
-- Prefira decompor o trabalho em partes independentes e distribuí-las entre subagentes em vez de executar tudo sequencialmente em um único fluxo.
-
-### 2.5. Execução baseada em objetivos
-- Toda ação deve servir a um **objetivo declarado**.
-- Antes de codar, deixe claro: *o que* será feito, *por que*, e *como* o sucesso será verificado.
-- Se a tarefa se desviar do objetivo, pare e realinhe.
-
-### 2.6. Testes verificam intenção e comportamento
-- Escreva testes que validem **intenções e comportamentos**, não detalhes de implementação.
-- Um teste deve falhar por uma razão clara e ligada ao comportamento esperado.
-
-### 2.7. TDD é obrigatório
-- **TDD é obrigatório em qualquer operação**: escreva o teste antes da implementação.
-- Ciclo: **Red → Green → Refactor**.
-  1. Escreva um teste que falha (Red).
-  2. Implemente o mínimo para passar (Green).
-  3. Refatore mantendo os testes verdes (Refactor).
-
-### 2.8. Nunca delete testes sem permissão
-- **Não remova nem desabilite** testes existentes sem autorização explícita.
-- Se um teste parece incorreto ou obsoleto, **sinalize e pergunte** antes de alterá-lo.
-
-### 2.9. Código autoexplicativo
-- **Não faça comentários desnecessários.** Comente apenas o que for realmente necessário (o *porquê*, não o *o quê*).
-- Nomes de **variáveis, funções, classes e métodos** devem ser descritivos e expressar com clareza o que fazem.
-- Prefira um nome claro a um comentário que explique um nome ruim.
-
-### 2.10. Documentação sempre atualizada
-- Em **qualquer alteração**, mantenha a documentação técnica e/ou de usabilidade atualizada.
-- Documentação desatualizada conta como trabalho incompleto.
-- Atualize READMEs, comentários relevantes e os documentos referenciados na Seção 3.
-
-### 2.11. Erros esperados como valores
-- Modele **erros esperados e recuperáveis** como valores de retorno, não como exceptions.
-- Use exceptions apenas para falhas realmente inesperadas, bugs, invariantes violadas ou problemas críticos de infraestrutura.
-- Não use exceptions como fluxo normal de negócio. Casos como validação inválida, entidade não encontrada, permissão negada, conflito de estado ou operação recusada devem ser retornados explicitamente.
-- Prefira retornos tipados e explícitos, como `Result<T, E>`, unions discriminadas ou estruturas equivalentes da linguagem usada.
-- Quem chama a função deve conseguir entender, pelo contrato, quais erros esperados podem acontecer e tratá-los sem depender de `try/catch` genérico.
+* **Contexto Enxuto:** Mantenha a janela de contexto abaixo de 60%. Detalhe operacional vive nas skills; não copie regra de skill para cá.
+* **Autoverificação:** O código só é considerado pronto após passar nos sensores da seção 2 e em 100% do `checklist.md` da spec.
+* **Isolamento:** Planejamento (`/k-spec`) e implementação (`/k-execute`) rodam em sessões separadas; a implementação começa com contexto zerado e lê apenas os artefatos da spec.
 
 ---
 
-## 3. Referências de Documentação
+## 2. Comandos do Projeto & Sensores
+Fonte única dos comandos que as skills executam. Preencha por projeto e remova o que não se aplica. Se faltar um comando, a skill pergunta uma vez — registre a resposta aqui.
 
-> Links para a documentação das demais partes do código.
+| Sensor | Comando |
+|---|---|
+| Testes unitários e integração | `<ex.: npm test / pytest>` |
+| Lint & formatação | `<ex.: npm run lint / flake8>` |
+| Tipos & build | `<ex.: tsc --noEmit / npm run build>` |
+| Testes de mutação (opcional) | `<ex.: npx stryker run / mutmut run>` |
+| Subir a aplicação para E2E | `<ex.: npm run dev>` |
+| Automação visual (E2E) | Playwright via MCP |
 
-- **Arquitetura:** `<link / caminho>`
-- **Documentação técnica:** `<link / caminho>`
-- **Documentação de usabilidade / produto:** `<link / caminho>`
-- **API / contratos:** `<link / caminho>`
-- **Decisões de arquitetura (ADRs):** `<link / caminho>`
-- **Guia de contribuição:** `<link / caminho>`
+---
+
+## 3. Fluxo de Skills
+Artefatos de cada trabalho ficam em `docs/specs/<AAAAMMDD-HHMMSS>-<slug>/`.
+
+`/k-spec` → *(sessão nova)* `/k-execute` → `/k-review` → `/k-verify` → `/k-commit`
+
+Blocker no review ou reprovação no verify volta para `/k-execute`.
+
+| Skill | Quando | Lê | Produz |
+|---|---|---|---|
+| `/k-spec` | início de qualquer trabalho que vire commit | pedido, código, este arquivo | `spec.md`, `checklist.md` |
+| `/k-execute` | spec pronta, em sessão nova | `spec.md`, `checklist.md` | código + testes |
+| `/k-review` | implementação com testes verdes | diff vs `main`, `spec.md` | `review.md` |
+| `/k-verify` | review sem blockers | `checklist.md`, seção 2 | `validation-report.md`, checklist marcado |
+| `/k-commit` | verify aprovado | `review.md`, `validation-report.md` | commits (Conventional Commits) |
+| `/k-prune` | periodicamente, fora do fluxo | este arquivo, `.claude/skills/` | proposta de poda |
+
+---
+
+## 4. Diretrizes de Código & Convenções
+* **Arquitetura Limpa:** Mantenha separação clara entre lógica de domínio, casos de uso e camada de infraestrutura.
+* **Tratamento de Erros:** Trate exceções explicitamente e registre logs contextuais sem expor dados sensíveis.
+* **Testes Obrigatórios:** Toda nova funcionalidade ou alteração deve vir acompanhada de testes unitários ou de integração.
+
+---
+
+## 5. Regra de Ouro
+Nunca declare uma tarefa como "concluída" sem antes executar `/k-verify` e ter 100% dos itens do `checklist.md` aprovados com evidência de testes reais e determinísticos.
