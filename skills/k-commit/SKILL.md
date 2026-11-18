@@ -13,8 +13,8 @@ Fluxo: k-spec → k-execute → k-review → k-verify → **k-commit**.
 ### 1. Conferir os portões
 Na pasta da spec (`docs/specs/*-<slug>/`):
 - `review.md` sem itens em `🔴 Blockers`.
-- `validation-report.md` com `Resultado: APROVADO` e todos os itens do `checklist.md` marcados.
-- Nenhum código alterado depois do relatório de validação; se houver, rode `/k-verify` de novo.
+- `validation-report.md` com `Resultado: APROVADO` e todos os itens do checklist marcados (`checklist.md`, ou a seção `## Checklist` do `spec.md`).
+- Código igual ao verificado: recalcule `HEAD`, hash do diff e hash dos não rastreados exatamente como o `k-verify` (seção **Código verificado** do relatório) e compare. Divergiu: rode `/k-verify` de novo.
 
 Faltou algo: pare e diga qual skill rodar. Commit avulso, sem spec (fora do fluxo): pule este passo e avise o usuário.
 
@@ -22,11 +22,12 @@ Faltou algo: pare e diga qual skill rodar. Commit avulso, sem spec (fora do flux
 `git status`, `git diff` e `git log --oneline -5`. Nenhum arquivo temporário, rascunho ou segredo pode entrar no commit.
 
 ### 3. Garantir a branch
-- **Na `main`:** atualize com `git pull` e crie `<prefixo>/<slug>` pelo `tipo` do `spec.md` (`feat/`, `fix/`, `refactor/`, `chore/`, `docs/`).
-- **Em outra branch:** confirme que ela combina com a mudança e que contém `origin/main` (`git fetch origin main && git merge-base --is-ancestor origin/main HEAD`). Se estiver desatualizada, faça merge de `origin/main`. Conflito: nunca resolva sozinho; mostre e pergunte arquivo por arquivo.
+O `k-execute` já cria a branch `<prefixo>/<slug>`. Aqui só confira:
+- **Em branch de trabalho:** confirme que ela combina com a mudança e que contém `origin/main` (`git fetch origin main && git merge-base --is-ancestor origin/main HEAD`). Se estiver desatualizada, faça merge de `origin/main`. Conflito: nunca resolva sozinho; mostre e pergunte arquivo por arquivo.
+- **Na `main`** (fora do fluxo): crie `<prefixo>/<slug>` pelo `tipo` (`feat/`, `fix/`, `refactor/`, `chore/`, `docs/`) levando as alterações; não rode `git pull` com a árvore suja.
 
 ### 4. Commitar
-Commits pequenos e focados, um por unidade lógica. Adicione arquivos pelo nome. A pasta da spec entra junto com o código ou num commit `docs(spec)` próprio.
+Commits pequenos e focados, um por unidade lógica (spec com fatias: um commit por fatia). Adicione arquivos pelo nome. A pasta da spec entra junto com o código ou num commit `docs(spec)` próprio.
 
 ```text
 <tipo>(<escopo>): <descrição no infinitivo, minúscula, sem ponto, até 72 caracteres>
