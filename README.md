@@ -3,19 +3,20 @@
 Skills do Claude Code para um fluxo de desenvolvimento **Spec-Lean**: planejar antes de codar, implementar em sessão limpa, revisar com subagentes e só commitar com evidência de que o checklist de aceite passou.
 
 ```
-/k-spec → (sessão nova) /k-execute → /k-review → /k-verify → /k-commit
+/k-spec → /k-execute → /k-review → /k-verify → /k-commit
 ```
 
 | Skill | O que faz |
 |---|---|
-| `k-spec` | Investiga o código, entrevista você e grava `spec.md` + `checklist.md` |
-| `k-execute` | Implementa código e testes a partir da spec, em contexto zerado |
-| `k-review` | Code review por quatro subagentes em paralelo, consolidado em `review.md` |
-| `k-verify` | Roda lint, tipos, testes e E2E e prova cada item do checklist em `validation-report.md` |
+| `k-spec` | Investiga o código, entrevista você em rodadas e grava `spec.md` + `checklist.md`, com a sua aprovação |
+| `k-execute` | Cria a branch e implementa teste-primeiro a partir da spec |
+| `k-review` | Code review por quatro subagentes em paralelo (padrões e aderência à spec), consolidado em `review.md` |
+| `k-verify` | Roda lint, tipos, testes e E2E, prova cada item do checklist com a linha real do teste e um verificador independente, e grava `validation-report.md` |
 | `k-commit` | Confere os portões, garante a branch e commita em Conventional Commits (pt-BR) |
+| `k-retro` | Fora do fluxo: transforma os achados de uma feature em guardrails e padrões de código |
 | `k-prune` | Fora do fluxo: audita `CLAUDE.md` e skills e propõe poda |
 
-Blocker no review ou reprovação no verify volta para `/k-execute`.
+Blocker no review ou reprovação no verify volta para `/k-execute`, no máximo duas rodadas por spec. O processo se ajusta ao tamanho: pequeno (até ~3 arquivos) usa spec de uma linha; grande (mais de ~8 itens no checklist) é dividido em fatias, uma por sessão.
 
 ## Instalar
 
@@ -46,6 +47,8 @@ npx skills update   # atualiza as skills instaladas
 ## CLAUDE.md do projeto
 
 O instalador **não** cria nem altera o `CLAUDE.md`. As skills leem dele a seção **Comandos do Projeto & Sensores** (testes, lint, build, E2E). Para tê-la, copie [`modelo-CLAUDE.md`](modelo-CLAUDE.md) para a raiz do projeto como `CLAUDE.md` (ou `AGENTS.md`) e preencha os campos `<...>`. Sem essa seção, o `/k-verify` pergunta cada comando uma vez.
+
+Opcionais, lidos quando existem: [`modelo-CODING_STANDARDS.md`](modelo-CODING_STANDARDS.md) (copie como `CODING_STANDARDS.md`; o `/k-review` o usa e o `/k-retro` o alimenta), `GLOSSARY.md` e `docs/adr/` (mantidos pelo `/k-spec`).
 
 ## Versões anteriores
 
