@@ -26,12 +26,30 @@ Leia o arquivo de instruções do projeto (`CLAUDE.md`/`AGENTS.md`), o `roadmap.
 
 Mostre uma síntese curta dos achados antes da primeira pergunta. Nunca pergunte o que o repositório responde.
 
-### 3. Entrevistar até não restar ambiguidade
-Trate as decisões como uma árvore. Cada rodada faz **todas** as perguntas cujos pré-requisitos já estão resolvidos; a que depende de outra aberta fica para a rodada seguinte.
-- Use `AskUserQuestion` (ou texto, se não existir), até 4 perguntas por chamada, numeradas, com 2 a 4 alternativas reais: a recomendada primeiro com `(Recomendado)`, cada uma dizendo o que se ganha e o que se perde, redigidas para que "sim" aceite a recomendação.
-- Fato que o ambiente responde: busque por subagente sem travar a rodada; só as perguntas que dependem dele esperam.
-- Só pergunte o que muda o resultado. O resto vira premissa registrada.
-- Termine quando não sobrar pergunta e o usuário confirmar o entendimento comum.
+### 3. Entrevistar sem assumir nada
+**Nunca assuma premissa.** Toda decisão que o repositório não responde é do usuário: pergunte, mesmo quando houver uma resposta "óbvia". Entreviste sem pressa até chegar a um entendimento comum, mapeando as decisões como uma **árvore de decisão**: cada decisão ramifica nas decisões que dependem dela.
+
+Trabalhe a árvore em **rodadas**. A **fronteira** é toda decisão cujos pré-requisitos já estão resolvidos: as perguntas que dá para fazer *agora* sem chutar respostas que ainda não ouviu. Faça a fronteira inteira numa rodada: numere cada pergunta e dê a sua resposta recomendada. Depois espere as respostas antes da rodada seguinte.
+
+Formato da rodada:
+
+```
+❓ **P1** - **<título da pergunta>**: <corpo da pergunta; pode ter vários parágrafos, inclusive alternativas>
+
+➡️ <sua resposta recomendada>
+
+---
+
+❓ **P2** - **<título da pergunta>**: <corpo da pergunta>
+
+➡️ <sua resposta recomendada>
+```
+
+- Redija cada pergunta para que "sim" aceite a recomendação. Quando houver alternativas reais, diga o que se ganha e o que se perde em cada uma.
+- Cada resposta remodela a árvore: decisões resolvidas empurram a fronteira para fora e liberam perguntas que dependiam delas. Recalcule a fronteira e faça a rodada seguinte. Pergunta cuja resposta depende de outra ainda aberta na rodada fica para uma rodada *posterior*.
+- Descobrir *fatos* é trabalho seu, nunca do usuário. Quando uma pergunta da fronteira precisa de fato do ambiente (arquivos, ferramentas etc.), dispare um subagente de contexto limpo; não pergunte o que você mesmo pode levantar. Não trave a rodada: a exploração em andamento é pré-requisito em aberto, então só as perguntas que dependem dela esperam; faça o resto da fronteira agora. As *decisões* são do usuário: coloque-as e espere.
+- Não existe "premissa registrada": o que não foi decidido pelo usuário nem respondido pelo repositório vira pergunta.
+- A entrevista termina quando a fronteira está vazia: todo ramo da árvore visitado e nada assumido em silêncio. Só avance para gravar quando o usuário confirmar que o entendimento comum foi alcançado.
 
 Domínio:
 - Aponte termo do usuário que conflita com o `GLOSSARY.md`, proponha termo preciso para palavra vaga, teste fronteiras com cenários concretos e confronte o que o usuário diz com o que o código faz.
@@ -40,7 +58,7 @@ Domínio:
 - Se a spec contradiz um ADR, diga explicitamente.
 
 ### 4. Fechar lacunas antes de gravar
-Trabalho médio ou grande. Resolva cada dimensão em regra ou `N/A porque <motivo>`: validação de entrada e limites; falha e falha parcial; idempotência, retry e duplicidade; autorização e rate limit; concorrência e ordem; ciclo de vida e expiração dos dados; observabilidade; falha de dependência externa; integridade das transições de estado.
+Trabalho médio ou grande. Resolva cada dimensão em regra ou `N/A porque <motivo>`, **perguntando ao usuário** (rodada no formato do passo 3) em vez de decidir sozinho; só vale `N/A` que o usuário ou o repositório confirmem: validação de entrada e limites; falha e falha parcial; idempotência, retry e duplicidade; autorização e rate limit; concorrência e ordem; ciclo de vida e expiração dos dados; observabilidade; falha de dependência externa; integridade das transições de estado.
 
 Releia o pedido frase por frase: cada frase cai numa regra, em "Fora do escopo" ou numa pergunta aberta.
 
@@ -77,9 +95,6 @@ Só no trabalho grande. Veja abaixo.
 
 ## Histórico de Decisões
 Escolha feita na entrevista, alternativa descartada e motivo, com as palavras do usuário.
-
-## Premissas
-O que foi assumido sem confirmação. Omita a seção se vazia.
 ```
 
 Mantenha só o essencial: o executor lê o `spec.md` inteiro em contexto zerado.
@@ -109,4 +124,4 @@ Próximo passo: /k-execute <slug> (sessão nova se o contexto já estiver pesado
 ## Restrições
 - Não altere código de aplicação nem faça commit nesta etapa.
 - Sem micro-tarefas: não quebre a implementação em passos de instrução de código; fatias são entregas verticais, não passos.
-- Não tome decisão que o usuário não tomou; pergunte.
+- Nunca assuma premissa nem tome decisão que o usuário não tomou; pergunte sempre. A spec não tem seção de premissas.
