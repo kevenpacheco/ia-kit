@@ -4,7 +4,7 @@ Planejamento Spec-Lean. Primeira etapa do fluxo: `/k-spec` → `/k-execute` → 
 
 ## O que faz
 
-Investiga o código com subagentes de leitura, entrevista você em rodadas (só pergunta o que o repositório não responde) e grava um plano único com critérios de aceite verificáveis. Nada é gravado como aprovado sem o seu "sim".
+Investiga o código com subagentes de leitura, entrevista você em rodadas numeradas, cada uma com a resposta recomendada (só pergunta o que o repositório não responde, e nunca assume premissa: o que não foi decidido vira pergunta) e grava um plano único com critérios de aceite verificáveis. Nada é gravado como aprovado sem o seu "sim".
 
 ## Quando usar
 
