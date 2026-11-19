@@ -37,6 +37,46 @@ As skills são copiadas para `.claude/skills/` e a versão instalada fica regist
 
 Sem `-a`, o CLI pergunta para quais ferramentas instalar.
 
+## Como usar, passo a passo
+
+Exemplo: adicionar um filtro por data numa listagem.
+
+**0. Preparar (uma vez por projeto).** Instale as skills e copie o [`modelo-CLAUDE.md`](#claudemd-do-projeto) preenchendo os comandos de teste, lint e build.
+
+**1. Planejar: `/k-spec adicionar filtro por data na listagem de pedidos`**
+Responda às perguntas (o `/k-spec` só pergunta o que o código não responde). No fim, leia o `spec.md` e o `checklist.md` e diga "sim" para aprovar. Nada é implementado ainda.
+
+**2. Implementar: `/k-execute`**
+Abra uma **sessão nova** (`/clear`) se a conversa do planejamento estiver longa. Ele cria a branch e implementa teste-primeiro, sem pedir aprovação a cada arquivo. Termina com os testes verdes.
+
+**3. Revisar: `/k-review`**
+Quatro revisores em paralelo geram o `review.md`.
+- Com 🔴 blockers: rode `/k-execute` para corrigir e `/k-review` de novo.
+- Sem blockers: leia os 🟡 should-fix e decida quais aplicar.
+
+**4. Provar: `/k-verify`**
+Roda lint, tipos e testes, prova cada item do checklist e grava o `validation-report.md`.
+- REPROVADO: volte para `/k-execute`, depois `/k-verify` de novo.
+- APROVADO: siga em frente.
+
+**5. Commitar: `/k-commit`**
+Confere tudo, commita em Conventional Commits e pergunta se quer push e PR. O merge só acontece se você aprovar.
+
+**6. Depois (opcional).** `/k-retro` transforma os erros achados em regras de lint ou padrões de código. `/k-prune` poda instruções e skills que ficaram obsoletas.
+
+```
+/k-spec ─▶ /k-execute ─▶ /k-review ─▶ /k-verify ─▶ /k-commit
+              ▲             │ blocker      │ reprovado
+              └─────────────┴──────────────┘
+```
+
+Dicas:
+- Cada skill diz o próximo passo ao terminar; basta seguir.
+- Com mais de uma spec aberta, passe o slug: `/k-execute filtro-por-data`.
+- Spec grande vira fatias: rode `/k-execute <slug> <fatia>`, uma por sessão.
+- Máximo de duas rodadas de correção por spec; na terceira, o fluxo para e leva a decisão a você.
+- Cada skill tem um README em `skills/<skill>/` com os detalhes.
+
 ## Atualizar
 
 ```sh
