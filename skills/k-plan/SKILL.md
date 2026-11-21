@@ -76,6 +76,9 @@ Assinaturas, tipos e contratos exatos que os testes de aceite já usam.
 
 ## Armadilhas
 Só o que o executor erraria sem aviso (ordem de migração, efeito colateral conhecido, padrão parecido que NÃO deve ser copiado).
+
+## Execução
+Preenchido pelo /k-build: progresso, decisões do usuário durante a execução e achados fora do escopo. O spec.md não muda depois de aprovado.
 ```
 
 ### 6. Simulação fria

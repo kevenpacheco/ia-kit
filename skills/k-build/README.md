@@ -1,36 +1,34 @@
-# k-execute
+# k-build
 
-Implementação contínua a partir de uma spec aprovada. Segunda etapa do fluxo: `/k-spec` → **`/k-execute`** → `/k-review` → `/k-verify` → `/k-commit`.
+Implementação a partir do plano. Terceira etapa do fluxo: `/k-discover` → `/k-plan` → **`/k-build`** → `/k-review` → `/k-verify` → `/k-commit`.
 
 ## O que faz
 
-Cria a branch `<tipo>/<slug>` a partir de `origin/main` e implementa teste-primeiro, um item do checklist por vez: escreve o teste, vê falhar, implementa o mínimo para passar. Não pede aprovação a cada arquivo.
+Segue os passos do `plan.md` até os testes de aceite, escritos pelo `/k-plan`, ficarem verdes. Copia os padrões indicados, usa as interfaces como escritas e não decide nada que o plano não decidiu: o que falta vira `duvidas.md` e a execução para. Roda em `sonnet` (frontmatter `model:`), porque a tarefa é mecânica.
 
 ## Quando usar
 
-- Depois do `/k-spec`.
+- Depois do `/k-plan` (ou do `/k-discover`, em trabalho pequeno).
 - Para corrigir blockers do `/k-review` ou reprovações do `/k-verify`.
 
 ## Uso
 
 ```
-/k-execute [slug] [fatia]
+/k-build [slug] [fatia]
 ```
 
 Sem slug, usa a única spec pendente ou lista as candidatas. Spec com fatias: uma fatia por sessão.
 
 ## Lê
 
-`spec.md` e checklist inteiros, `review.md` e `validation-report.md` (se existirem) e os arquivos citados em Decisões Técnicas.
+`plan.md`, `spec.md`, checklist, testes de aceite, arquivos do mapa e, se existirem, `review.md` e `validation-report.md`.
 
 ## Regras principais
 
-- Recusa spec sem `aprovado_em`.
-- Testa só os Pontos de teste da spec; mock apenas em fronteira do sistema.
-- Valor esperado vem da spec, nunca recalculado como o código calcula.
-- Nunca enfraquece asserção, apaga teste ou usa skip para ficar verde.
-- Achado fora do escopo vai para `## Achados fora do escopo` da spec, sem corrigir.
-- Decisões tomadas durante a execução são gravadas em `## Histórico de Decisões`.
+- Recusa spec sem aprovação, falta de `plan.md`, `spec_hash` divergente (a spec mudou depois do plano) e `duvidas.md` pendente.
+- Nunca altera teste de aceite (o `/k-verify` confere o hash) nem toca arquivo fora do mapa do plano.
+- Testes unitários novos com valor esperado literal; mock apenas em fronteira do sistema.
+- Progresso, decisões do usuário e achados fora do escopo vão para `## Execução` do `plan.md`; o `spec.md` não muda.
 - Máximo de duas rodadas de correção por spec.
 
 **Próximo passo:** `/k-review`
