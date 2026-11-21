@@ -1,15 +1,16 @@
 # k-verify
 
-Portões determinísticos de qualidade. Quarta etapa do fluxo: `/k-spec` → `/k-execute` → `/k-review` → **`/k-verify`** → `/k-commit`.
+Portões determinísticos de qualidade. Quinta etapa do fluxo: `/k-discover` → `/k-plan` → `/k-build` → `/k-review` → **`/k-verify`** → `/k-commit`.
 
 ## O que faz
 
-O agente não declara pronto: prova. Cada item do checklist precisa de evidência de execução real nesta sessão.
+O agente não declara pronto: prova. Cada item do checklist precisa de evidência de execução real nesta sessão. Roda em `haiku` (frontmatter `model:`), porque quase tudo é mecânico; o julgamento fica com o verificador independente em `sonnet`.
 
-1. Roda lint, tipos/build, testes e mutação (se o projeto tiver).
-2. Valida telas via Playwright MCP quando a mudança toca interface.
-3. Passa por um verificador independente, que checa se cada teste realmente falharia se a regra fosse falsa e tenta valores que ninguém citou.
-4. Grava `validation-report.md` amarrado ao código (`HEAD`, hash do diff e dos não rastreados).
+1. **Portões de contrato:** `spec.md` e testes de aceite com o hash gravado no `plan.md`, diff só em arquivos do mapa do plano, e cada ID do checklist com um teste que o leva no nome.
+2. Roda lint, tipos/build, testes (verbose) e mutação (se o projeto tiver).
+3. Valida telas via Playwright MCP quando a mudança toca interface.
+4. Passa por um verificador independente, que julga os testes unitários escritos pelo executor e tenta valores que ninguém citou.
+5. Grava `validation-report.md` amarrado ao código (`HEAD`, hash do diff e dos não rastreados).
 
 ## Quando usar
 
@@ -21,18 +22,19 @@ Antes de declarar qualquer trabalho concluído e antes do `/k-commit`.
 /k-verify [slug]
 ```
 
-Os comandos vêm da seção **Comandos do Projeto & Sensores** do `CLAUDE.md`. Se faltar algum, a skill pergunta uma vez.
+Os comandos vêm do `## Comandos` do `plan.md` e, na falta, da seção **Comandos do Projeto & Sensores** do `CLAUDE.md`. Se faltar algum, a skill pergunta uma vez.
 
 ## Produz
 
 - `validation-report.md` com portões, evidência por item (a linha real impressa pelo teste) e `Resultado: APROVADO | REPROVADO`.
 - Itens `[x]` no checklist, só para os que têm evidência.
 
-APROVADO exige todos os portões verdes, 100% do checklist e nenhum achado do verificador. Sem Playwright MCP, itens de tela ficam `não verificado`.
+APROVADO exige todos os portões de contrato e determinísticos verdes, 100% do checklist e nenhum achado do verificador. Sem Playwright MCP, itens de tela ficam `não verificado`.
 
 ## Encaminhamento
 
-- REPROVADO: `/k-execute` e depois `/k-verify` de novo (limite de duas rodadas por spec).
+- REPROVADO por contrato: `/k-build` desfaz a alteração, ou `/k-plan` se ela foi combinada (novo hash e mapa).
+- REPROVADO por portão ou checklist: `/k-build` e depois `/k-verify` de novo (limite de duas rodadas por spec).
 - APROVADO: `/k-commit`.
 
 Não altera código de aplicação.

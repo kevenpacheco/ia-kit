@@ -1,12 +1,13 @@
 ---
 name: k-review
-description: Code review por quatro subagentes especialistas em paralelo (segurança, arquitetura, aderência à spec, performance/testes) sobre o diff contra o merge-base com a main, consolidado em review.md com blockers, should-fix e nice-to-have. Use depois de /k-execute e antes de /k-verify, ou para revisar mudanças locais antes de commitar.
+description: Code review por quatro subagentes especialistas em paralelo (segurança, arquitetura, aderência à spec, performance/testes) sobre o diff contra o merge-base com a main, consolidado em review.md com blockers, should-fix e nice-to-have. Use depois de /k-build e antes de /k-verify, ou para revisar mudanças locais antes de commitar.
 argument-hint: "[slug]"
+model: sonnet
 ---
 
 # k-review — Review Multi-Agente Paralelo
 
-Fluxo: k-spec → k-execute → **k-review** → k-verify → k-commit.
+Fluxo: k-discover → k-plan → k-build → **k-review** → k-verify → k-commit.
 
 Quem implementou tem viés de confirmação. Revisores isolados em subagentes auditam o diff sem poluir o contexto principal.
 
@@ -15,16 +16,16 @@ Quem implementou tem viés de confirmação. Revisores isolados em subagentes au
 ### 1. Isolar a mudança
 - `git diff $(git merge-base origin/main HEAD)` (inclui o que ainda não foi commitado) e `git status --short` para arquivos novos. Não compare com a ponta da `main`: commits novos dela apareceriam como revertidos.
 - Diff vazio ou ref inválida: pare e avise.
-- Localize a spec pelo slug ou pela pasta mais recente em `docs/specs/`: ela define o escopo esperado.
+- Localize a spec pelo slug ou pela pasta mais recente em `docs/specs/`: o `spec.md` define o escopo esperado, e o mapa de arquivos do `plan.md` (ou o `## Plano` do `spec.md`, no trabalho pequeno) define o que podia mudar.
 
 ### 2. Disparar os revisores
-Quatro subagentes **somente de leitura**, todos na mesma mensagem, cada um com resposta de até 400 palavras. Cada um recebe o diff, a lista de arquivos novos e os caminhos do `spec.md`, do `CODING_STANDARDS.md` (se existir) e do arquivo de instruções do projeto:
+Quatro subagentes **somente de leitura** com `model: sonnet`, todos na mesma mensagem, cada um com resposta de até 400 palavras. Cada um recebe o diff, a lista de arquivos novos e os caminhos do `spec.md`, do `plan.md`, do `CODING_STANDARDS.md` (se existir) e do arquivo de instruções do projeto:
 
 | Revisor | Foco |
 |---|---|
 | Segurança | OWASP Top 10, segredos/credenciais no diff, sanitização de entrada, autenticação e autorização |
 | Arquitetura (eixo padrões) | aderência às convenções do arquivo de instruções e do `CODING_STANDARDS.md`, separação entre domínio, casos de uso e infraestrutura, injeção de dependência; smells como julgamento (abaixo) |
-| Aderência à spec (eixo spec) | (a) o que o `spec.md` pede e está faltando ou pela metade; (b) comportamento que ninguém pediu ou alteração fora do escopo; (c) o que parece implementado mas está errado. Cada achado cita a linha da spec |
+| Aderência à spec (eixo spec) | (a) o que o `spec.md` pede e está faltando ou pela metade; (b) comportamento que ninguém pediu, alteração fora do escopo ou arquivo fora do mapa do `plan.md`; (c) o que parece implementado mas está errado. Cada achado cita a linha da spec |
 | Performance & testes | consultas N+1, perda de desempenho, caminho novo sem teste unitário ou de integração |
 
 **Smells** (questão de julgamento, nunca violação dura): Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest. A regra documentada do repositório tem precedência; o que lint ou formatador já força fica de fora.
@@ -50,5 +51,5 @@ Grave na pasta da spec, sobrescrevendo a versão anterior. Remova duplicatas ent
 Blocker é só o que impede o commit: vulnerabilidade, quebra de comportamento, mudança fora do escopo, requisito da spec faltando, caminho novo sem teste.
 
 ### 4. Encaminhar
-- **Com blockers:** `Próximo passo: /k-execute` para corrigir, depois `/k-review` de novo. Limite de duas rodadas de correção por spec: blockers na rodada 2, pare e leve ao usuário o que ainda falha.
+- **Com blockers:** `Próximo passo: /k-build` para corrigir, depois `/k-review` de novo. Limite de duas rodadas de correção por spec: blockers na rodada 2, pare e leve ao usuário o que ainda falha.
 - **Sem blockers:** mostre os should-fix ao usuário (aplicá-los é decisão dele) e indique `Próximo passo: /k-verify`.
