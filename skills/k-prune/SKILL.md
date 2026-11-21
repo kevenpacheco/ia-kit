@@ -16,7 +16,7 @@ Um subagente somente de leitura por nível, todos na mesma mensagem:
 |---|---|
 | A — Integridade | arquivo, pasta ou skill citada que não existe; comando da seção **Comandos do Projeto & Sensores** que não roda (confira em `package.json`, `Makefile`, `pyproject.toml` etc.) |
 | B — Redundância | regra que o código já demonstra de forma consistente; instrução óbvia para modelos atuais; regra repetida entre o arquivo de instruções e uma skill, ou contraditória entre eles |
-| C — Skills | `description` ambígua ou sobreposta a outra skill; texto explicativo que não é passo operacional; artefato lido por uma skill e não produzido por nenhuma |
+| C — Skills | `description` ambígua ou sobreposta a outra skill; texto explicativo que não é passo operacional; artefato lido por uma skill e não produzido por nenhuma; `model:` no frontmatter com valor inválido ou em skill de vários turnos (o override só vale no turno que invoca a skill) |
 
 Cada achado volta com `arquivo:linha`, evidência e a edição proposta (remover, condensar ou mover).
 
