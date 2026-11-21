@@ -6,7 +6,7 @@ argument-hint: "[slug]"
 
 # k-commit — Validação Final & Commit
 
-Fluxo: k-spec → k-execute → k-review → k-verify → **k-commit**.
+Fluxo: k-discover → k-plan → k-build → k-review → k-verify → **k-commit**.
 
 ## Procedimento
 
@@ -22,7 +22,7 @@ Faltou algo: pare e diga qual skill rodar. Commit avulso, sem spec (fora do flux
 `git status`, `git diff` e `git log --oneline -5`. Nenhum arquivo temporário, rascunho ou segredo pode entrar no commit.
 
 ### 3. Garantir a branch
-O `k-execute` já cria a branch `<prefixo>/<slug>`. Aqui só confira:
+O `k-plan` já cria a branch `<prefixo>/<slug>`. Aqui só confira:
 - **Em branch de trabalho:** confirme que ela combina com a mudança e que contém `origin/main` (`git fetch origin main && git merge-base --is-ancestor origin/main HEAD`). Se estiver desatualizada, faça merge de `origin/main`. Conflito: nunca resolva sozinho; mostre e pergunte arquivo por arquivo.
 - **Na `main`** (fora do fluxo): crie `<prefixo>/<slug>` pelo `tipo` (`feat/`, `fix/`, `refactor/`, `chore/`, `docs/`) levando as alterações; não rode `git pull` com a árvore suja.
 

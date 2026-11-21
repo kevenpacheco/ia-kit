@@ -12,7 +12,7 @@ Três subagentes somente de leitura auditam, em paralelo, o `CLAUDE.md`/`AGENTS.
 |---|---|
 | A — Integridade | caminhos e skills citados que não existem; comandos de **Comandos do Projeto & Sensores** que não rodam |
 | B — Redundância | regras que o código já demonstra, instruções óbvias, regras repetidas ou contraditórias |
-| C — Skills | `description` ambígua ou sobreposta, texto que não é passo operacional, artefato lido por uma skill e não produzido por nenhuma |
+| C — Skills | `description` ambígua ou sobreposta, texto que não é passo operacional, artefato lido por uma skill e não produzido por nenhuma, `model:` inválido ou em skill de vários turnos |
 
 ## Quando usar
 

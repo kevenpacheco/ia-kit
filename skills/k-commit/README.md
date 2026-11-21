@@ -1,6 +1,6 @@
 # k-commit
 
-Validação final e commit. Última etapa do fluxo: `/k-spec` → `/k-execute` → `/k-review` → `/k-verify` → **`/k-commit`**.
+Validação final e commit. Última etapa do fluxo: `/k-discover` → `/k-plan` → `/k-build` → `/k-review` → `/k-verify` → **`/k-commit`**.
 
 ## O que faz
 

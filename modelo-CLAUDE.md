@@ -8,7 +8,7 @@ Este repositório adota o modelo **Spec-Lean (Spec-Driven + Progressive Disclosu
 
 * **Contexto Enxuto:** Detalhe operacional vive nas skills; não copie regra de skill para cá.
 * **Autoverificação:** O código só é considerado pronto após passar nos sensores da seção 2 e em 100% do checklist da spec.
-* **Isolamento:** A implementação lê apenas os artefatos da spec. Abra sessão nova entre `/k-spec` e `/k-execute` quando o contexto já estiver pesado; continuar na mesma preserva o porquê das decisões.
+* **Isolamento:** Cada etapa lê apenas os artefatos da anterior. Abra uma sessão nova por etapa; `/k-discover` e `/k-plan` no modelo mais forte, as demais fixam o próprio modelo.
 
 ---
 
@@ -29,18 +29,19 @@ Fonte única dos comandos que as skills executam. Preencha por projeto e remova 
 ## 3. Fluxo de Skills
 Artefatos de cada trabalho ficam em `docs/specs/<AAAAMMDD-HHMMSS>-<slug>/`.
 
-`/k-spec` → `/k-execute` → `/k-review` → `/k-verify` → `/k-commit`
+`/k-discover` → `/k-plan` → `/k-build` → `/k-review` → `/k-verify` → `/k-commit`
 
-Blocker no review ou reprovação no verify volta para `/k-execute`, no máximo duas rodadas por spec; na segunda reprovação, pare e leve ao usuário.
+Blocker no review ou reprovação no verify volta para `/k-build`, no máximo duas rodadas por spec; na segunda reprovação, pare e leve ao usuário. O que o plano não responde vira `duvidas.md` e volta para `/k-plan` (técnico) ou `/k-discover` (produto).
 
-Tamanho do trabalho: **pequeno** (até ~3 arquivos) usa spec de uma linha e review só de aderência à spec; **médio** segue o fluxo completo; **grande** (mais de ~8 itens no checklist) é dividido em fatias, uma por sessão.
+Tamanho do trabalho: **pequeno** (até ~3 arquivos) leva checklist e plano dentro do `spec.md`, pula o `/k-plan` e tem review só de aderência à spec; **médio** segue o fluxo completo; **grande** (mais de ~8 itens no checklist) é dividido em fatias, uma por sessão.
 
 | Skill | Quando | Lê | Produz |
 |---|---|---|---|
-| `/k-spec` | início de qualquer trabalho que vire commit | pedido, código, este arquivo, `GLOSSARY.md`, `docs/adr/` | `spec.md` aprovado, `checklist.md` |
-| `/k-execute` | spec aprovada | `spec.md`, `checklist.md` | branch, código + testes |
-| `/k-review` | implementação com testes verdes | diff vs merge-base com `main`, `spec.md`, `CODING_STANDARDS.md` | `review.md` |
-| `/k-verify` | review sem blockers | `checklist.md`, seção 2 | `validation-report.md`, checklist marcado |
+| `/k-discover` | início de qualquer trabalho que vire commit | pedido, código, este arquivo, `GLOSSARY.md`, `docs/adr/` | `contexto.md`, `spec.md` aprovado, `checklist.md` com IDs |
+| `/k-plan` | spec aprovada | `spec.md`, `checklist.md`, `contexto.md` | `plan.md`, branch, testes de aceite vermelhos (hash travado) |
+| `/k-build` | plano pronto | `plan.md`, `spec.md`, testes de aceite | código + testes unitários, testes de aceite verdes |
+| `/k-review` | implementação com testes verdes | diff vs merge-base com `main`, `spec.md`, `plan.md`, `CODING_STANDARDS.md` | `review.md` |
+| `/k-verify` | review sem blockers | `checklist.md`, `plan.md`, seção 2 | `validation-report.md`, checklist marcado |
 | `/k-commit` | verify aprovado | `review.md`, `validation-report.md` | commits (Conventional Commits) |
 | `/k-retro` | depois do commit, fora do fluxo | `review.md`, `validation-report.md` | guardrails e padrões novos |
 | `/k-prune` | periodicamente, fora do fluxo | este arquivo, `.claude/skills/` | proposta de poda |
