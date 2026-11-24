@@ -83,7 +83,7 @@ npx skills add kevenpacheco/ia-kit@v1.0.0 -a claude-code -s '*' -y
 
 ## Desenvolver no kit
 
-As skills ficam em `skills/<nome>/SKILL.md`, com `name` e `description` no frontmatter. Para testar uma mudança antes de publicar, instale a partir do clone local num projeto de teste:
+As skills ficam em `skills/<nome>/SKILL.md`, com `name` e `description` no frontmatter. **Sempre coloque o `description:` entre aspas duplas** — como é texto em pt-BR, costuma ter `: ` (dois-pontos + espaço), que num valor YAML sem aspas quebra o parse e faz o `npx skills add` pular a skill em silêncio (sem erro visível). Para testar uma mudança antes de publicar, instale a partir do clone local num projeto de teste:
 
 ```sh
 npx skills add <caminho-do-clone> -a claude-code -s '*' -y

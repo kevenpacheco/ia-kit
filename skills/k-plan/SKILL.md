@@ -1,6 +1,6 @@
 ---
 name: k-plan
-description: Plano de execução a partir de uma spec aprovada. Lê spec.md, checklist.md e contexto.md, grava plan.md (o como: mapa de arquivos, padrão a copiar, interfaces, comandos exatos, passos ligados aos IDs do checklist), cria a branch e escreve os testes de aceite falhando, travados por hash, e valida o plano com uma simulação fria. Use depois de /k-discover, ou quando a spec mudou e o plan.md ficou inválido. A etapa seguinte é /k-build.
+description: "Plano de execução a partir de uma spec aprovada. Lê spec.md, checklist.md e contexto.md, grava plan.md (o como: mapa de arquivos, padrão a copiar, interfaces, comandos exatos, passos ligados aos IDs do checklist), cria a branch e escreve os testes de aceite falhando, travados por hash, e valida o plano com uma simulação fria. Use depois de /k-discover, ou quando a spec mudou e o plan.md ficou inválido. A etapa seguinte é /k-build."
 argument-hint: "[slug] [fatia]"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: k-discover
-description: Discovery e especificação. Investiga o código, entrevista o usuário em rodadas até não restar decisão aberta e grava contexto.md (fatos do repositório), spec.md (o quê: escopo, regras com exemplos literais, pontos de teste, decisões) e checklist.md (critérios de aceite com ID), com aprovação explícita do usuário. Use ao iniciar qualquer feature, correção, refactor ou chore que vá virar commit, ou para responder um duvidas.md. Primeira etapa do fluxo; a seguinte é /k-plan.
+description: "Discovery e especificação. Investiga o código, entrevista o usuário em rodadas até não restar decisão aberta e grava contexto.md (fatos do repositório), spec.md (o quê: escopo, regras com exemplos literais, pontos de teste, decisões) e checklist.md (critérios de aceite com ID), com aprovação explícita do usuário. Use ao iniciar qualquer feature, correção, refactor ou chore que vá virar commit, ou para responder um duvidas.md. Primeira etapa do fluxo; a seguinte é /k-plan."
 argument-hint: "[descrição do trabalho | slug de spec existente]"
 ---
 
